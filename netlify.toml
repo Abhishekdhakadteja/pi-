@@ -1,0 +1,11 @@
+# Netlify deploy settings. Next.js support is added automatically by Netlify.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  # The daily reminder job lives in netlify/functions/reminders-cron.mts
+  directory = "netlify/functions"

@@ -41,6 +41,7 @@ Patient booking page: `http://localhost:3000/book/demo` (development OTP: `12345
      2. `supabase/migrations/20261111000002_booking_and_queue.sql`
      3. `supabase/migrations/20261111000003_patient_otp.sql`
      4. `supabase/migrations/20261111000004_reminders.sql`
+     5. `supabase/migrations/20261111000005_hardening.sql`
    - Or with the CLI: `npx supabase link --project-ref <your-ref>` then `npx supabase db push`.
 3. **Authentication → Sign In / Providers → Email:** turn **OFF** "Allow new users to sign up".
    Staff accounts are created by the admin/seed script only.
@@ -69,6 +70,13 @@ Make random secrets with `openssl rand -hex 32`. Never put a secret in a variabl
 2. Add all environment variables above (with `APP_URL` = your Vercel address).
 3. Deploy. `vercel.json` already schedules the reminder job daily at **03:30 UTC = 9:00 AM India time**.
 4. Log in as admin → **Generate clinic QR code** → print the A4 poster.
+
+## Deploy (Netlify, alternative to Vercel)
+
+1. On netlify.com: "Add new project" → "Import from GitHub" → this repo. `netlify.toml` already has the build settings.
+2. Add all environment variables above (with `APP_URL` = your Netlify address, e.g. `https://clinicease.netlify.app`).
+3. Deploy. `netlify/functions/reminders-cron.mts` runs the reminder job daily at **03:30 UTC = 9:00 AM India time**
+   (it calls `/api/cron/reminders` with `CRON_SECRET`). Use either Vercel or Netlify, not both.
 
 ## Daily automatic backup (important)
 
