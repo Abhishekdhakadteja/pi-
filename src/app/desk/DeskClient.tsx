@@ -84,7 +84,7 @@ export function DeskClient() {
               placeholder="98765 43210"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              maxLength={14}
+              maxLength={16}
               autoFocus
             />
             <button className="btn-primary" disabled={pending}>{pending ? t("loading") : t("search")}</button>
@@ -225,7 +225,7 @@ function AddPatientForm({
       </div>
       <div>
         <label className="label" htmlFor="newphone">{t("phone")}</label>
-        <input id="newphone" name="phone" className="input" inputMode="numeric" defaultValue={phone} required maxLength={14} />
+        <input id="newphone" name="phone" className="input" inputMode="numeric" defaultValue={phone} required maxLength={16} />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
