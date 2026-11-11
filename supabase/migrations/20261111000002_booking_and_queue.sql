@@ -164,7 +164,7 @@ begin
     coalesce((select array_agg(token_number order by token_number) from public.appointments
       where clinic_id = p_clinic and date = p_date and status in ('booked', 'waiting')), '{}'),
     coalesce((select array_agg(token_number order by token_number) from public.appointments
-      where clinic_id = p_clinic and date = p_date and status in ('done', 'missed')), '{}'),
+      where clinic_id = p_clinic and date = p_date and status = 'done'), '{}'),
     (select count(*) from public.appointments where clinic_id = p_clinic and date = p_date),
     (select count(*) from public.appointments where clinic_id = p_clinic and date = p_date and status = 'done'),
     now()
