@@ -70,6 +70,13 @@ Make random secrets with `openssl rand -hex 32`. Never put a secret in a variabl
 3. Deploy. `vercel.json` already schedules the reminder job daily at **03:30 UTC = 9:00 AM India time**.
 4. Log in as admin → **Generate clinic QR code** → print the A4 poster.
 
+## Deploy (Netlify, alternative to Vercel)
+
+1. On netlify.com: "Add new project" → "Import from GitHub" → this repo. `netlify.toml` already has the build settings.
+2. Add all environment variables above (with `APP_URL` = your Netlify address, e.g. `https://clinicease.netlify.app`).
+3. Deploy. `netlify/functions/reminders-cron.mts` runs the reminder job daily at **03:30 UTC = 9:00 AM India time**
+   (it calls `/api/cron/reminders` with `CRON_SECRET`). Use either Vercel or Netlify, not both.
+
 ## Daily automatic backup (important)
 
 Patient data lives only in Supabase. Before real patients:
