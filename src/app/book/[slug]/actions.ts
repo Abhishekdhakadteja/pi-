@@ -4,7 +4,8 @@ import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { serverEnv } from "@/lib/server-env";
 import { getSender } from "@/lib/messaging";
-import { makeToken, readToken } from "@/lib/signed";
+import { makeToken } from "@/lib/signed";
+import { COOKIE, getSession, resolveReminderCode } from "./session";
 import { addDays, todayIST } from "@/lib/dates";
 import { cleanName, isValidDate, normalizePhone, parseAge } from "@/lib/validate";
 import type { ErrorCode } from "@/lib/i18n";
@@ -16,14 +17,12 @@ import type { BookResult } from "@/lib/types";
 //  3. only touches patients whose phone equals the verified phone.
 // The service-role client is used, so these checks are the security boundary.
 
-const COOKIE = "ce_pt";
 const SESSION_TTL = 2 * 60 * 60; // 2 hours
 const OTP_TTL_MIN = 10;
 const MAX_SENDS_PER_10_MIN = 3;
 const MAX_ATTEMPTS = 5;
 
 type Fail = { ok: false; error: ErrorCode };
-type Session = { phone: string; clinic: string };
 
 async function clinicBySlug(slug: string) {
   if (!/^[a-z0-9-]{3,40}$/.test(slug)) return null;
@@ -35,10 +34,6 @@ function hashCode(phone: string, code: string) {
   return createHash("sha256").update(`${phone}:${code}:${serverEnv.patientSessionSecret()}`).digest("hex");
 }
 
-export async function getSession(clinicId: string): Promise<Session | null> {
-  const s = readToken<Session>((await cookies()).get(COOKIE)?.value);
-  return s && s.clinic === clinicId && normalizePhone(s.phone) ? s : null;
-}
 
 export async function sendOtp(slug: string, phoneInput: string): Promise<{ ok: true; phone: string } | Fail> {
   const clinic = await clinicBySlug(slug);
@@ -210,9 +205,9 @@ export async function confirmBooking(
   const booking = data as BookResult;
 
   // Booked from a reminder link? Remember it for reports and stop further reminders.
-  const r = readToken<{ p: string; r: string }>(reminderToken);
-  if (booking.result === "booked" && r && r.p === patient.id) {
-    await db.from("appointments").update({ reminder_id: r.r }).eq("id", booking.appointment.id);
+  const link = await resolveReminderCode(clinic.id, reminderToken);
+  if (booking.result === "booked" && link && link.patient_id === patient.id) {
+    await db.from("appointments").update({ reminder_id: link.id }).eq("id", booking.appointment.id);
   }
   if (booking.result === "booked") {
     await db
@@ -223,6 +218,7 @@ export async function confirmBooking(
   }
   return { ok: true, booking };
 }
+
 
 export async function signOutPatient() {
   (await cookies()).delete(COOKIE);

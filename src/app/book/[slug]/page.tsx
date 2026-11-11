@@ -1,9 +1,8 @@
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { readToken } from "@/lib/signed";
 import { getT } from "@/lib/lang-server";
 import { LangSwitch } from "@/components/LangSwitch";
-import { getSession } from "./actions";
+import { getSession, resolveReminderCode } from "./session";
 import { BookingFlow } from "./BookingFlow";
 
 export const dynamic = "force-dynamic";
@@ -24,17 +23,19 @@ export default async function BookPage({
   const session = await getSession(clinic.id);
 
   // Personal link from a reminder: the patient is known, but only AFTER the OTP step.
-  const link = readToken<{ p: string; r: string }>(r);
   let preselect: string | null = null;
-  if (session && link) {
-    const { data } = await supabaseAdmin()
-      .from("patients")
-      .select("id")
-      .eq("id", link.p)
-      .eq("clinic_id", clinic.id)
-      .eq("phone", session.phone)
-      .maybeSingle();
-    preselect = data?.id ?? null;
+  if (session && r) {
+    const link = await resolveReminderCode(clinic.id, r);
+    if (link) {
+      const { data } = await supabaseAdmin()
+        .from("patients")
+        .select("id")
+        .eq("id", link.patient_id)
+        .eq("clinic_id", clinic.id)
+        .eq("phone", session.phone)
+        .maybeSingle();
+      preselect = data?.id ?? null;
+    }
   }
 
   return (
