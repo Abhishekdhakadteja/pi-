@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+/* ClinicEase: big, clear, light. Built for cheap Android phones. */
+:root {
+  --bg: #f7f9fb;
+  --fg: #0f172a;
+  --brand: #0f766e;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, "Noto Sans", "Noto Sans Devanagari", Arial, sans-serif;
+  font-size: 18px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@utility btn {
+  @apply inline-flex min-h-14 w-full items-center justify-center rounded-2xl px-5 text-xl font-semibold transition active:scale-[0.98] disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-teal-700 text-white;
+}
+@utility btn-secondary {
+  @apply btn border-2 border-teal-700 bg-white text-teal-800;
+}
+@utility btn-danger {
+  @apply btn bg-red-600 text-white;
+}
+@utility btn-small {
+  @apply inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-base font-semibold;
+}
+@utility input {
+  @apply block min-h-14 w-full rounded-xl border-2 border-slate-300 bg-white px-4 text-xl outline-none focus:border-teal-600;
+}
+@utility label {
+  @apply mb-1 block text-lg font-medium text-slate-700;
+}
+@utility card {
+  @apply rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200;
+}
+@utility error-box {
+  @apply rounded-xl bg-red-50 p-4 text-lg text-red-800 ring-1 ring-red-200;
+}
+@utility ok-box {
+  @apply rounded-xl bg-green-50 p-4 text-lg text-green-800 ring-1 ring-green-200;
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+}
