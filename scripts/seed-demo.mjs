@@ -32,7 +32,7 @@ async function main() {
             phone: "9000000000",
             slots_per_day: 40,
             opening_time: "09:00",
-            closing_time: "17:00",
+            closing_time: "21:00",
           })
           .select(),
       )
