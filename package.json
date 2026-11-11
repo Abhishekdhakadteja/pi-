@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:db": "supabase test db",
-    "seed": "node --env-file=.env.local scripts/seed-demo.mjs"
+    "seed": "node --env-file=.env.local scripts/seed-demo.mjs",
+    "check:secrets": "node --env-file=.env.local scripts/check-secrets.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -25,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/qrcode": "^1.5.6",

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import QRCode from "qrcode";
 import { requireRole } from "@/lib/staff";
 import { serverEnv } from "@/lib/server-env";
@@ -15,7 +16,7 @@ export default async function PosterPage() {
       <style>{`@page { size: A4; margin: 0 } @media print { html, body { width: 210mm; height: 297mm } }`}</style>
       <div className="no-print mx-auto flex max-w-md flex-col gap-3 p-4">
         <PrintButton label={t("printPoster")} />
-        <a href="/admin" className="btn-secondary">{t("back")}</a>
+        <Link href="/admin" className="btn-secondary">{t("back")}</Link>
       </div>
       <div
         className="mx-auto flex flex-col items-center justify-between bg-white px-[12mm] py-[16mm] text-center text-slate-900"
