@@ -41,6 +41,7 @@ Patient booking page: `http://localhost:3000/book/demo` (development OTP: `12345
      2. `supabase/migrations/20261111000002_booking_and_queue.sql`
      3. `supabase/migrations/20261111000003_patient_otp.sql`
      4. `supabase/migrations/20261111000004_reminders.sql`
+     5. `supabase/migrations/20261111000005_hardening.sql`
    - Or with the CLI: `npx supabase link --project-ref <your-ref>` then `npx supabase db push`.
 3. **Authentication → Sign In / Providers → Email:** turn **OFF** "Allow new users to sign up".
    Staff accounts are created by the admin/seed script only.
