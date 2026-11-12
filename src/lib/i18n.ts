@@ -82,7 +82,18 @@ const en = {
   markMissed: "Missed",
   confirmMissed: "Mark this patient as missed?",
   noPatientsToday: "No patients today yet.",
-  source_qr: "QR",
+  source_qr: "🏠 From home",
+  arrived: "Arrived",
+  homeNotArrived: "Booked from home. Tap Arrived when they reach.",
+  homePriority: "Call patients who booked from home first, at their time",
+  last4Title: "Enter the last 4 digits of your mobile number",
+  last4Hint: "This link is only for you. No OTP is needed.",
+  useOtherNumber: "Book with another number",
+  welcomeBack: "Hello",
+  homePriorityNote: "Reach at your time and tell the desk. You will be called first.",
+  homeQueueNote: "You booked from home. Reach at your time and tell the desk, you will be called first.",
+  err_last4: "These digits do not match. Please try again or use your full number.",
+  err_too_many: "Too many bookings on this number. Please call the clinic.",
   source_attender: "Desk",
   live: "Live",
 
@@ -372,7 +383,18 @@ const hi: Dict = {
   markMissed: "नहीं आए",
   confirmMissed: "क्या यह मरीज़ नहीं आया?",
   noPatientsToday: "आज अभी कोई मरीज़ नहीं।",
-  source_qr: "QR",
+  source_qr: "🏠 घर से",
+  arrived: "आ गए",
+  homeNotArrived: "घर से booking है। मरीज़ के पहुँचने पर “आ गए” दबाएँ।",
+  homePriority: "घर से booking वालों को उनके समय पर पहले बुलाएँ",
+  last4Title: "अपने mobile number के आख़िरी 4 अंक डालें",
+  last4Hint: "यह link सिर्फ़ आपके लिए है। OTP की ज़रूरत नहीं।",
+  useOtherNumber: "दूसरे number से book करें",
+  welcomeBack: "नमस्ते",
+  homePriorityNote: "अपने समय पर पहुँचकर desk पर बताएँ। आपको पहले बुलाया जाएगा।",
+  homeQueueNote: "आपने घर से booking की है। अपने समय पर पहुँचकर desk पर बताएँ, आपको पहले बुलाया जाएगा।",
+  err_last4: "ये अंक मेल नहीं खाते। दोबारा कोशिश करें या पूरा number डालें।",
+  err_too_many: "इस number पर बहुत ज़्यादा booking हैं। कृपया clinic पर call करें।",
   source_attender: "डेस्क",
   live: "लाइव",
 
@@ -618,4 +640,6 @@ export type ErrorCode =
   | "err_password"
   | "err_exists"
   | "err_rx"
+  | "err_last4"
+  | "err_too_many"
   | "cannotRemoveSelf";

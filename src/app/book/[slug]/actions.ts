@@ -8,6 +8,7 @@ import { makeToken } from "@/lib/signed";
 import { COOKIE, getSession, isVerified, resolveReminderCode } from "./session";
 import { addDays, todayIST } from "@/lib/dates";
 import { cleanName, isValidDate, normalizePhone, parseAge } from "@/lib/validate";
+import { last4Matches } from "@/lib/queue";
 import type { ErrorCode } from "@/lib/i18n";
 import type { BookResult } from "@/lib/types";
 
@@ -21,6 +22,8 @@ const SESSION_TTL = 2 * 60 * 60; // 2 hours
 const OTP_TTL_MIN = 10;
 const MAX_SENDS_PER_10_MIN = 3;
 const MAX_ATTEMPTS = 5;
+const MAX_LINK_ATTEMPTS = 5;
+const MAX_OPEN_BOOKINGS_PER_PHONE = 6;
 
 type Fail = { ok: false; error: ErrorCode };
 
@@ -52,6 +55,36 @@ export async function startWithoutOtp(slug: string, phoneInput: string): Promise
     maxAge: SESSION_TTL,
   });
   return { ok: true, phone };
+}
+
+/**
+ * Personal reminder link (free, no SMS): the link was sent to the patient's own WhatsApp, and the
+ * patient confirms with the last 4 digits of the mobile number. After 5 wrong tries the link only
+ * works with the normal mobile-number step. The session is "not verified", so no other names saved
+ * on that number are ever listed.
+ */
+export async function startWithLink(slug: string, code: string, last4: string): Promise<{ ok: true } | Fail> {
+  const clinic = await clinicBySlug(slug);
+  if (!clinic) return { ok: false, error: "err_generic" };
+  const link = await resolveReminderCode(clinic.id, code);
+  if (!link) return { ok: false, error: "err_generic" };
+  const db = supabaseAdmin();
+  const { data: rem } = await db.from("reminders").select("link_attempts").eq("id", link.id).maybeSingle();
+  const attempts = rem?.link_attempts ?? 0;
+  if (attempts >= MAX_LINK_ATTEMPTS) return { ok: false, error: "err_last4" };
+  const { data: patient } = await db.from("patients").select("phone").eq("id", link.patient_id).eq("clinic_id", clinic.id).maybeSingle();
+  if (!patient || !last4Matches(patient.phone, last4)) {
+    await db.from("reminders").update({ link_attempts: attempts + 1 }).eq("id", link.id);
+    return { ok: false, error: "err_last4" };
+  }
+  (await cookies()).set(COOKIE, makeToken({ phone: patient.phone, clinic: clinic.id, v: false }, SESSION_TTL), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_TTL,
+  });
+  return { ok: true };
 }
 
 export async function sendOtp(slug: string, phoneInput: string): Promise<{ ok: true; phone: string } | Fail> {
@@ -221,6 +254,18 @@ export async function confirmBooking(
   // The patient must belong to the verified phone.
   const { data: patient } = await db.from("patients").select("id").eq("id", patientId).eq("clinic_id", clinic.id).eq("phone", s.phone).maybeSingle();
   if (!patient) return { ok: false, error: "err_session" };
+
+  // Free booking has no OTP, so stop one number from filling the calendar.
+  const { data: family } = await db.from("patients").select("id").eq("clinic_id", clinic.id).eq("phone", s.phone);
+  const { count: open } = await db
+    .from("appointments")
+    .select("id", { count: "exact", head: true })
+    .eq("clinic_id", clinic.id)
+    .in("patient_id", (family ?? []).map((f) => f.id))
+    .gte("date", today)
+    .eq("status", "booked")
+    .eq("source", "qr");
+  if ((open ?? 0) >= MAX_OPEN_BOOKINGS_PER_PHONE) return { ok: false, error: "err_too_many" };
 
   const { data, error } = await db.rpc("book_appointment", {
     p_clinic: clinic.id,

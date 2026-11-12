@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
       age: a.patient?.age ?? "",
       gender: a.patient?.gender ?? "",
       status: a.status,
-      source: a.source === "qr" ? "QR" : "Desk",
+      source: a.source === "qr" ? "Home" : "Desk",
       after: a.afterReminder ? "Yes" : "No",
     });
   }
