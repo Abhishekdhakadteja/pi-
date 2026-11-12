@@ -41,6 +41,7 @@ export async function updateClinic(form: FormData): Promise<Res> {
       upi_id: upiRaw || null,
       default_fee: fee,
       booking_otp: form.get("booking_otp") === "on",
+      home_priority: form.get("home_priority") === "on",
     })
     .eq("id", staff.clinic_id);
   if (error) return { ok: false, error: "err_generic" };

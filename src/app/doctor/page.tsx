@@ -20,7 +20,7 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
 
   const { data: todays } = await supabase
     .from("appointments")
-    .select("id, token_number, status, called_at, patient_id, complaint")
+    .select("id, token_number, status, called_at, patient_id, complaint, source")
     .eq("clinic_id", staff.clinic_id)
     .eq("date", today)
     .order("token_number");
@@ -97,6 +97,9 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
             <div className="mt-1 flex items-baseline gap-3">
               <span className="text-5xl font-black text-teal-700">{inRoom.token_number}</span>
               <span className="text-2xl font-bold">{patient.name}</span>
+              {inRoom.source === "qr" && (
+                <span className="rounded-full bg-teal-100 px-3 py-1 text-sm font-bold text-teal-900">{t("source_qr")}</span>
+              )}
             </div>
             <div className="mt-1 text-lg text-slate-600">
               {patient.age != null ? `${patient.age} ${t("years")}` : ""}

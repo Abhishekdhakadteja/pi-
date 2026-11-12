@@ -14,28 +14,38 @@ import {
   getFamily,
   sendOtp,
   signOutPatient,
+  startWithLink,
   startWithoutOtp,
   verifyOtp,
   type FamilyMember,
 } from "./actions";
 
-type Step = "phone" | "otp" | "who" | "day" | "done";
+type Step = "last4" | "phone" | "otp" | "who" | "day" | "done";
 
 export function BookingFlow({
   slug,
   verifiedPhone,
   preselect,
+  preselectName,
   reminderToken,
+  linkValid,
   otpRequired,
+  homePriority,
 }: {
   slug: string;
   otpRequired: boolean;
+  homePriority: boolean;
   verifiedPhone: string | null;
   preselect: string | null;
+  preselectName: string | null;
   reminderToken: string | null;
+  linkValid: boolean;
 }) {
   const { t, lang } = useT();
-  const [step, setStep] = useState<Step>(verifiedPhone ? (preselect ? "day" : "who") : "phone");
+  const [step, setStep] = useState<Step>(
+    verifiedPhone ? (preselect ? "day" : "who") : linkValid && reminderToken ? "last4" : "phone",
+  );
+  const [last4, setLast4] = useState("");
   const [phone, setPhone] = useState(verifiedPhone ?? "");
   const [code, setCode] = useState("");
   const [members, setMembers] = useState<FamilyMember[]>([]);
@@ -77,11 +87,38 @@ export function BookingFlow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
-  const memberName = members.find((m) => m.id === member)?.name;
+  const memberName = members.find((m) => m.id === member)?.name ?? (member === preselect ? preselectName : null);
 
   return (
     <div className="flex flex-col gap-4">
       {error && <p className="error-box" role="alert">{t(error as ErrorCode)}</p>}
+
+      {step === "last4" && (
+        <form
+          className="card flex flex-col gap-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            // Reload so the server can pre-select the patient of this link.
+            run(() => startWithLink(slug, reminderToken ?? "", last4), () => window.location.reload());
+          }}
+        >
+          <label className="label" htmlFor="last4">{t("last4Title")}</label>
+          <input
+            id="last4"
+            className="input text-center text-4xl tracking-[0.5em]"
+            inputMode="numeric"
+            maxLength={4}
+            value={last4}
+            onChange={(e) => setLast4(e.target.value.replace(/\D/g, ""))}
+            autoFocus
+          />
+          <p className="text-slate-600">{t("last4Hint")}</p>
+          <button className="btn-primary" disabled={pending || last4.length !== 4}>{pending ? t("loading") : t("continueBtn")}</button>
+          <button type="button" className="btn-small text-slate-600 underline" onClick={() => { setError(null); setStep("phone"); }}>
+            {t("useOtherNumber")}
+          </button>
+        </form>
+      )}
 
       {step === "phone" && (
         <form
@@ -204,7 +241,13 @@ export function BookingFlow({
 
       {step === "day" && (
         <div className="card flex flex-col gap-3">
-          {memberName && <p className="text-lg">👤 <b>{memberName}</b></p>}
+          {memberName && (
+            <p className="text-lg">
+              {member === preselect && preselectName ? `${t("welcomeBack")}, ` : "👤 "}
+              <b>{memberName}</b>
+            </p>
+          )}
+          {homePriority && <p className="rounded-xl bg-teal-50 p-3 text-teal-900 ring-1 ring-teal-200">🏠 {t("homePriorityNote")}</p>}
           <h2 className="text-xl font-bold">{t("pickDay")}</h2>
           <div className="grid grid-cols-4 gap-2" data-testid="calendar">
             {days.map((d) => {
@@ -283,6 +326,7 @@ export function BookingFlow({
           <div className="text-[7rem] font-black leading-none text-teal-700" data-testid="token">{booking.appointment.token_number}</div>
           <div className="text-3xl font-bold">{formatDate(booking.appointment.date, lang, true)}</div>
           <div className="text-3xl font-bold">{formatTime(booking.appointment.slot_time)}</div>
+          {homePriority && <p className="mt-2 w-full rounded-xl bg-teal-50 p-3 text-lg text-teal-900 ring-1 ring-teal-200">🏠 {t("homePriorityNote")}</p>}
           <Link
             className="btn-primary mt-4"
             href={`/queue/${slug}?t=${booking.appointment.token_number}&d=${booking.appointment.date}`}

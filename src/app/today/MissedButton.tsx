@@ -1,7 +1,7 @@
 "use client";
 import { useTransition } from "react";
 import { useT } from "@/components/LangProvider";
-import { markMissed } from "./actions";
+import { markArrived, markMissed } from "./actions";
 
 export function MissedButton({ id }: { id: string }) {
   const { t } = useT();
@@ -15,6 +15,21 @@ export function MissedButton({ id }: { id: string }) {
       }}
     >
       {t("markMissed")}
+    </button>
+  );
+}
+
+export function ArrivedButton({ id }: { id: string }) {
+  const { t } = useT();
+  const [pending, start] = useTransition();
+  return (
+    <button
+      className="btn-small bg-teal-700 px-4 font-bold text-white"
+      disabled={pending}
+      data-testid="arrived"
+      onClick={() => start(() => markArrived(id).then(() => undefined))}
+    >
+      ✓ {t("arrived")}
     </button>
   );
 }
