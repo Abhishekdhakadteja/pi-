@@ -42,6 +42,7 @@ Patient booking page: `http://localhost:3000/book/demo` (development OTP: `12345
      3. `supabase/migrations/20261111000003_patient_otp.sql`
      4. `supabase/migrations/20261111000004_reminders.sql`
      5. `supabase/migrations/20261111000005_hardening.sql`
+     6. `supabase/migrations/20261112000001_zero_cost_10x.sql` (v2: fees, expenses, prescriptions, one-tap WhatsApp)
    - Or with the CLI: `npx supabase link --project-ref <your-ref>` then `npx supabase db push`.
 3. **Authentication → Sign In / Providers → Email:** turn **OFF** "Allow new users to sign up".
    Staff accounts are created by the admin/seed script only.
@@ -59,7 +60,7 @@ Patient booking page: `http://localhost:3000/book/demo` (development OTP: `12345
 | `PATIENT_SESSION_SECRET` | Signs the patient's verified-phone cookie and OTP hashes. Random 64 chars | **YES** |
 | `CRON_SECRET` | Protects the daily reminder job URL | **YES** |
 | `INBOUND_WEBHOOK_SECRET` | Protects the incoming SMS/WhatsApp (STOP) webhook | **YES** |
-| `MESSAGING_PROVIDER` | `log` (default: messages are only printed, nothing is sent). Later `msg91` / `whatsapp` | no |
+| `MESSAGING_PROVIDER` | `manual` (default, FREE: reminders wait on the Messages page and staff send each with one tap on their own WhatsApp). `log` = print only (development). Later `msg91` / `whatsapp` | no |
 | `DEMO_OTP` | Fixed OTP for testing. **Ignored in production builds.** | no |
 
 Make random secrets with `openssl rand -hex 32`. Never put a secret in a variable that starts with `NEXT_PUBLIC_`.
@@ -102,6 +103,15 @@ Patient data lives only in Supabase. Before real patients:
 | `/admin` | admin | Clinic settings, QR poster. |
 | `/admin/reminders` | admin | Reminders sent + status, edit wording (Hindi/English), stop messages for a number. |
 | `/reports` | admin, doctor | Today / week / month numbers, Excel export (no doctor notes). |
+| `/money` | admin, doctor | Balance sheet: today / week / month / year income, expenses, profit, by payment mode; add expenses and other income; fees earned from patients who came back after a reminder. |
+| `/messages` | all staff | Reminders waiting to be sent. "Send on WhatsApp" opens the staff member's WhatsApp with the text ready (wa.me link, free). |
+| `/admin/staff` | admin | Add staff (mobile and/or email + password), remove or bring back. |
+| `/rx/<appointment>` | staff | Printable prescription slip (no doctor notes). |
+
+**v2 zero-cost features:** fee collection on Today's list (cash, or a UPI QR of the clinic's own UPI ID with the amount filled in: no gateway, no fee);
+prescription lines (medicine, dose, before/after food, days) that also set the medicine end date and reminder from the longest medicine, and can be sent to the patient on WhatsApp;
+booking without OTP when the clinic setting "Ask OTP" is off (default, because OTP needs paid SMS; in this mode the page never shows names saved on a number);
+a second, firmer follow-up reminder text that admins can edit.
 
 **Reminders:** every morning at 9:00 IST the job finds medicine courses ending within 2 days (consent given,
 not opted out, not already booked) and sends one message with a personal booking link. If the patient has not

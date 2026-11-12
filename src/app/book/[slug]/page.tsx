@@ -17,7 +17,7 @@ export default async function BookPage({
   const { slug } = await params;
   const { r } = await searchParams;
   if (!/^[a-z0-9-]{3,40}$/.test(slug)) notFound();
-  const { data: clinic } = await supabaseAdmin().from("clinics").select("id, name").eq("slug", slug).maybeSingle();
+  const { data: clinic } = await supabaseAdmin().from("clinics").select("id, name, booking_otp").eq("slug", slug).maybeSingle();
   if (!clinic) notFound();
   const { t } = await getT();
   const session = await getSession(clinic.id);
@@ -45,7 +45,7 @@ export default async function BookPage({
         <LangSwitch />
       </div>
       <h1 className="text-2xl font-bold">{t("bookTitle")}</h1>
-      <BookingFlow slug={slug} verifiedPhone={session?.phone ?? null} preselect={preselect} reminderToken={r ?? null} />
+      <BookingFlow slug={slug} verifiedPhone={session?.phone ?? null} preselect={preselect} reminderToken={r ?? null} otpRequired={clinic.booking_otp} />
     </main>
   );
 }

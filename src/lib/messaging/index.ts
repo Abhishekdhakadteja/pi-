@@ -6,13 +6,25 @@ import { serverEnv } from "@/lib/server-env";
 
 export type Channel = "sms" | "whatsapp";
 export type OutgoingMessage = { to: string; channel: Channel; body: string; purpose: "otp" | "reminder" };
-export type SendResult = { status: "sent" | "logged" | "failed"; providerRef?: string; error?: string };
+export type SendResult = { status: "sent" | "logged" | "manual" | "failed"; providerRef?: string; error?: string };
 
 export interface MessageSender {
   send(msg: OutgoingMessage): Promise<SendResult>;
 }
 
-/** Default: does NOT send anything. Prints the message to the server log. */
+/**
+ * FREE default: nothing is sent automatically. The message is saved and the clinic staff send it
+ * with ONE tap on the "Messages" page, which opens their own WhatsApp with the text filled in
+ * (wa.me link). No API, no per-message cost.
+ */
+export class ManualWhatsAppSender implements MessageSender {
+  async send(msg: OutgoingMessage): Promise<SendResult> {
+    console.log(`[message:manual:${msg.purpose}] queued for one-tap WhatsApp to +91${msg.to}`);
+    return { status: "manual" };
+  }
+}
+
+/** Development only: prints the message to the server log. */
 export class LogSender implements MessageSender {
   async send(msg: OutgoingMessage): Promise<SendResult> {
     console.log(`[message:${msg.channel}:${msg.purpose}] to +91${msg.to}: ${msg.body}`);
@@ -43,7 +55,10 @@ export function getSender(): MessageSender {
       return new Msg91Sender();
     case "whatsapp":
       return new WhatsAppSender();
+    case "log":
+      // On the live site "log" would silently drop reminders, so it falls back to one-tap WhatsApp.
+      return process.env.NODE_ENV === "production" ? new ManualWhatsAppSender() : new LogSender();
     default:
-      return new LogSender();
+      return new ManualWhatsAppSender();
   }
 }

@@ -8,7 +8,16 @@ export type Staff = {
   clinic_id: string;
   name: string;
   role: Role;
-  clinic: { id: string; name: string; slug: string; slots_per_day: number; opening_time: string; closing_time: string };
+  clinic: {
+    id: string;
+    name: string;
+    slug: string;
+    slots_per_day: number;
+    opening_time: string;
+    closing_time: string;
+    upi_id: string | null;
+    default_fee: number;
+  };
 };
 
 export const ROLE_HOME: Record<Role, string> = {
@@ -26,7 +35,7 @@ export async function getStaff(): Promise<Staff | null> {
   if (!user) return null;
   const { data } = await supabase
     .from("users")
-    .select("id, clinic_id, name, role, active, clinic:clinics(id, name, slug, slots_per_day, opening_time, closing_time)")
+    .select("id, clinic_id, name, role, active, clinic:clinics(id, name, slug, slots_per_day, opening_time, closing_time, upi_id, default_fee)")
     .eq("id", user.id)
     .maybeSingle();
   if (!data || !data.active || !data.clinic) return null;

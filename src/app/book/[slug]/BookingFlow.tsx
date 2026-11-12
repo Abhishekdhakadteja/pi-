@@ -14,6 +14,7 @@ import {
   getFamily,
   sendOtp,
   signOutPatient,
+  startWithoutOtp,
   verifyOtp,
   type FamilyMember,
 } from "./actions";
@@ -25,8 +26,10 @@ export function BookingFlow({
   verifiedPhone,
   preselect,
   reminderToken,
+  otpRequired,
 }: {
   slug: string;
+  otpRequired: boolean;
   verifiedPhone: string | null;
   preselect: string | null;
   reminderToken: string | null;
@@ -86,6 +89,18 @@ export function BookingFlow({
           onSubmit={(e) => {
             e.preventDefault();
             if (!normalizePhone(phone)) return setError("err_phone");
+            if (!otpRequired) {
+              run(() => startWithoutOtp(slug, phone), (r) => {
+                setPhone(r.phone);
+                // Reminder link: reload so the server can pre-select the patient.
+                if (reminderToken) window.location.reload();
+                else {
+                  setAdding(true);
+                  setStep("who");
+                }
+              });
+              return;
+            }
             run(() => sendOtp(slug, phone), (r) => {
               setPhone(r.phone);
               setStep("otp");
@@ -106,7 +121,7 @@ export function BookingFlow({
               autoFocus
             />
           </div>
-          <button className="btn-primary" disabled={pending}>{pending ? t("loading") : t("sendOtp")}</button>
+          <button className="btn-primary" disabled={pending}>{pending ? t("loading") : otpRequired ? t("sendOtp") : t("continueBtn")}</button>
         </form>
       )}
 
@@ -146,6 +161,7 @@ export function BookingFlow({
       {step === "who" && (
         <div className="card flex flex-col gap-3">
           <h2 className="text-xl font-bold">{t("whoIsVisiting")}</h2>
+          {!otpRequired && members.length === 0 && <p className="text-slate-600">{t("noOtpWho")}</p>}
           {members.map((m) => (
             <button
               key={m.id}

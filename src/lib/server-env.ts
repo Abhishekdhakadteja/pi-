@@ -13,7 +13,8 @@ export const serverEnv = {
   patientSessionSecret: () => required("PATIENT_SESSION_SECRET"),
   cronSecret: () => required("CRON_SECRET"),
   inboundWebhookSecret: () => required("INBOUND_WEBHOOK_SECRET"),
-  messagingProvider: () => process.env.MESSAGING_PROVIDER ?? "log",
+  /** "manual" (default, free one-tap WhatsApp), "log" (dev: print only), "msg91", "whatsapp". */
+  messagingProvider: () => process.env.MESSAGING_PROVIDER ?? "manual",
   /** Fixed OTP for testing. Never active in production builds. */
   demoOtp: () => (process.env.NODE_ENV === "production" ? null : process.env.DEMO_OTP || null),
 };

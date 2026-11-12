@@ -2,7 +2,7 @@
 -- Everything runs inside one transaction and is rolled back: no data is left behind.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(30);
+select plan(40);
 
 -- ---------- Fixed test data: two clinics, staff in each ----------
 insert into auth.users (id, email, aud, role) values
@@ -50,7 +50,7 @@ select throws_ok(
     values ('00000000-0000-0000-0000-00000000c11a', '00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000000f1', 'x')$$,
   '42501', null, 'ATTENDER cannot write doctor notes');
 select is((select count(*)::int from public.treatment_courses), 0, 'ATTENDER cannot read treatment courses');
-select is((select count(*)::int from public.reminders), 0, 'ATTENDER cannot read reminders');
+select is((select count(*)::int from public.reminders), 0, 'ATTENDER sees no reminders of other clinics (none exist in own)');
 select is((select count(*)::int from public.patients), 3, 'ATTENDER sees the 3 patients of own clinic');
 select is((select count(*)::int from public.audit_log), 0, 'ATTENDER cannot read the audit log');
 select lives_ok(
@@ -116,6 +116,47 @@ select is(
 select is(
   public.book_appointment('00000000-0000-0000-0000-00000000c11a', '00000000-0000-0000-0000-0000000000f3', public.clinic_today() + 1, 'attender') ->> 'next_free_day',
   (public.clinic_today() + 2)::text, 'full day says "full" and offers the next free day');
+
+-- ---------- 8. Money and prescriptions (v2) ----------
+-- (still logged in as the Clinic A attender)
+select lives_ok(
+  $$insert into public.payments (clinic_id, amount, mode, created_by)
+    values ('00000000-0000-0000-0000-00000000c11a', 300, 'upi', '00000000-0000-0000-0000-0000000000a1')$$,
+  'ATTENDER can record a fee');
+select throws_ok(
+  $$insert into public.payments (clinic_id, amount, mode, created_by)
+    values ('00000000-0000-0000-0000-00000000c11a', 300, 'cash', '00000000-0000-0000-0000-0000000000a2')$$,
+  '42501', null, 'nobody can record a fee in another staff member''s name');
+delete from public.payments;
+select is((select count(*)::int from public.payments), 1, 'ATTENDER cannot delete a fee (admin only)');
+select is((select count(*)::int from public.expenses), 0, 'ATTENDER cannot see clinic expenses');
+select throws_ok(
+  $$insert into public.expenses (clinic_id, amount, category, created_by)
+    values ('00000000-0000-0000-0000-00000000c11a', 5000, 'rent', '00000000-0000-0000-0000-0000000000a1')$$,
+  '42501', null, 'ATTENDER cannot add expenses');
+select throws_ok(
+  $$insert into public.prescription_items (clinic_id, appointment_id, patient_id, medicine, days)
+    values ('00000000-0000-0000-0000-00000000c11a', '00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000000f1', 'Tab X', 5)$$,
+  '42501', null, 'ATTENDER cannot write a prescription');
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}';
+select lives_ok(
+  $$insert into public.expenses (clinic_id, amount, category, created_by)
+    values ('00000000-0000-0000-0000-00000000c11a', 5000, 'rent', '00000000-0000-0000-0000-0000000000a2')$$,
+  'DOCTOR (owner) can add an expense');
+select lives_ok(
+  $$insert into public.prescription_items (clinic_id, appointment_id, patient_id, medicine, days)
+    values ('00000000-0000-0000-0000-00000000c11a', '00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000000f1', 'Tab X', 5)$$,
+  'DOCTOR can write a prescription');
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}';
+select is((select count(*)::int from public.payments) + (select count(*)::int from public.prescription_items), 0,
+  'CLINIC B staff cannot see Clinic A fees or prescriptions');
+
+reset role;
+set local role anon;
+set local request.jwt.claims = '{"role":"anon"}';
+select throws_ok($$select * from public.payments$$, '42501', null, 'ANON cannot read fees');
 
 select * from finish();
 rollback;

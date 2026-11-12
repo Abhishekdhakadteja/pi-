@@ -24,27 +24,39 @@ type CourseRow = {
   reminder_status: string;
   appointment: { doctor_id: string | null } | null;
   patient: { id: string; name: string; phone: string; language: string; consent_given: boolean; opted_out: boolean } | null;
-  clinic: { id: string; name: string; slug: string; reminder_template_hi: string; reminder_template_en: string; reminder_channel: "sms" | "whatsapp" } | null;
+  clinic: {
+    id: string;
+    name: string;
+    slug: string;
+    reminder_template_hi: string;
+    reminder_template_en: string;
+    followup_template_hi: string;
+    followup_template_en: string;
+    reminder_channel: "sms" | "whatsapp";
+  } | null;
 };
 
 export type JobSummary = { first: number; followUp: number; alreadyBooked: number; skippedNoConsent: number; failed: number };
 
-export async function runReminderJob(now: Date = new Date()): Promise<JobSummary> {
+/** Runs for every clinic, or only `clinicId` (the "prepare now" button on the Messages page). */
+export async function runReminderJob(now: Date = new Date(), clinicId?: string): Promise<JobSummary> {
   const db = supabaseAdmin();
   const today = todayIST(now);
   const summary: JobSummary = { first: 0, followUp: 0, alreadyBooked: 0, skippedNoConsent: 0, failed: 0 };
   const select =
     "id, clinic_id, patient_id, end_date, reminder_status, appointment:appointments(doctor_id), " +
     "patient:patients(id, name, phone, language, consent_given, opted_out), " +
-    "clinic:clinics(id, name, slug, reminder_template_hi, reminder_template_en, reminder_channel)";
+    "clinic:clinics(id, name, slug, reminder_template_hi, reminder_template_en, followup_template_hi, followup_template_en, reminder_channel)";
 
   // ---- 1. First reminders ----
-  const { data: due, error: e1 } = await db
+  let dueQ = db
     .from("treatment_courses")
     .select(select)
     .eq("reminder_status", "pending")
     .gte("end_date", today)
     .lte("end_date", addDays(today, 2));
+  if (clinicId) dueQ = dueQ.eq("clinic_id", clinicId);
+  const { data: due, error: e1 } = await dueQ;
   if (e1) throw e1;
 
   for (const c of (due ?? []) as unknown as CourseRow[]) {
@@ -66,7 +78,9 @@ export async function runReminderJob(now: Date = new Date()): Promise<JobSummary
   }
 
   // ---- 2. Follow-ups (2 days after the first reminder, only if not booked) ----
-  const { data: reminded, error: e2 } = await db.from("treatment_courses").select(select).eq("reminder_status", "reminded");
+  let remQ = db.from("treatment_courses").select(select).eq("reminder_status", "reminded");
+  if (clinicId) remQ = remQ.eq("clinic_id", clinicId);
+  const { data: reminded, error: e2 } = await remQ;
   if (e2) throw e2;
   const cutoff = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000); // ~2 days (1h tolerance)
 
@@ -140,16 +154,20 @@ async function sendReminder(c: CourseRow, kind: "first" | "follow_up"): Promise<
 
   // Personal link: opens the booking page; the patient is pre-selected only AFTER the OTP step.
   const link = `${serverEnv.appUrl()}/book/${clinic.slug}?r=${row.link_code}`;
-  const template = p.language === "en" ? clinic.reminder_template_en : clinic.reminder_template_hi;
+  const template =
+    kind === "first"
+      ? p.language === "en" ? clinic.reminder_template_en : clinic.reminder_template_hi
+      : p.language === "en" ? clinic.followup_template_en : clinic.followup_template_hi;
   const body = fillTemplate(template, { patient: p.name, doctor: await doctorName(c.clinic_id, c.appointment?.doctor_id ?? null), clinic: clinic.name, link });
 
   const res = await getSender().send({ to: p.phone, channel: clinic.reminder_channel, body, purpose: "reminder" });
+  // "manual" = waiting on the Messages page for one tap on WhatsApp; sent_at is set when staff send it.
   await db
     .from("reminders")
     .update({
       message: body,
       status: res.status,
-      sent_at: res.status === "failed" ? null : new Date().toISOString(),
+      sent_at: res.status === "failed" || res.status === "manual" ? null : new Date().toISOString(),
       provider_ref: res.providerRef ?? null,
       error: res.error ?? null,
     })

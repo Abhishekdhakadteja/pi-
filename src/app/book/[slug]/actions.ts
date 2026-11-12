@@ -5,7 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { serverEnv } from "@/lib/server-env";
 import { getSender } from "@/lib/messaging";
 import { makeToken } from "@/lib/signed";
-import { COOKIE, getSession, resolveReminderCode } from "./session";
+import { COOKIE, getSession, isVerified, resolveReminderCode } from "./session";
 import { addDays, todayIST } from "@/lib/dates";
 import { cleanName, isValidDate, normalizePhone, parseAge } from "@/lib/validate";
 import type { ErrorCode } from "@/lib/i18n";
@@ -26,7 +26,7 @@ type Fail = { ok: false; error: ErrorCode };
 
 async function clinicBySlug(slug: string) {
   if (!/^[a-z0-9-]{3,40}$/.test(slug)) return null;
-  const { data } = await supabaseAdmin().from("clinics").select("id, name, slots_per_day").eq("slug", slug).maybeSingle();
+  const { data } = await supabaseAdmin().from("clinics").select("id, name, slots_per_day, booking_otp").eq("slug", slug).maybeSingle();
   return data;
 }
 
@@ -34,6 +34,25 @@ function hashCode(phone: string, code: string) {
   return createHash("sha256").update(`${phone}:${code}:${serverEnv.patientSessionSecret()}`).digest("hex");
 }
 
+
+/**
+ * FREE mode (clinic setting "OTP" off): the patient only types the mobile number, no SMS is sent.
+ * Privacy: in this mode the page never lists names saved on that number; the patient types the name.
+ */
+export async function startWithoutOtp(slug: string, phoneInput: string): Promise<{ ok: true; phone: string } | Fail> {
+  const clinic = await clinicBySlug(slug);
+  if (!clinic || clinic.booking_otp) return { ok: false, error: "err_generic" };
+  const phone = normalizePhone(phoneInput);
+  if (!phone) return { ok: false, error: "err_phone" };
+  (await cookies()).set(COOKIE, makeToken({ phone, clinic: clinic.id, v: false }, SESSION_TTL), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_TTL,
+  });
+  return { ok: true, phone };
+}
 
 export async function sendOtp(slug: string, phoneInput: string): Promise<{ ok: true; phone: string } | Fail> {
   const clinic = await clinicBySlug(slug);
@@ -113,6 +132,7 @@ export async function getFamily(slug: string): Promise<{ ok: true; members: Fami
   if (!clinic) return { ok: false, error: "err_generic" };
   const s = await getSession(clinic.id);
   if (!s) return { ok: false, error: "err_session" };
+  if (!isVerified(s)) return { ok: true, members: [] }; // no OTP: never reveal names on a number
   const { data, error } = await supabaseAdmin()
     .from("patients")
     .select("id, name, age")
@@ -136,6 +156,15 @@ export async function addFamilyMember(
   const age = parseAge(input.age);
   if (age === "invalid") return { ok: false, error: "err_age" };
   if (!input.consent) return { ok: false, error: "consentRequired" };
+  // Same person again (same number + same name)? Reuse the record so the history stays together.
+  const { data: same } = await supabaseAdmin()
+    .from("patients")
+    .select("id, name, age")
+    .eq("clinic_id", clinic.id)
+    .eq("phone", s.phone)
+    .ilike("name", name.replace(/[%_\\]/g, ""))
+    .limit(1);
+  if (same?.[0]) return { ok: true, member: same[0] };
   const { data, error } = await supabaseAdmin()
     .from("patients")
     .insert({

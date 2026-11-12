@@ -4,6 +4,8 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { assertRole } from "@/lib/staff";
 import { audit } from "@/lib/audit";
 import { cleanName, cleanText, normalizePhone } from "@/lib/validate";
+import { isValidUpiId } from "@/lib/share";
+import { parseAmount } from "@/lib/money";
 import type { ErrorCode } from "@/lib/i18n";
 
 type Res = { ok: true } | { ok: false; error: ErrorCode };
@@ -22,10 +24,24 @@ export async function updateClinic(form: FormData): Promise<Res> {
   if (!Number.isInteger(slots) || slots < 1 || slots > 300 || !TIME.test(opening) || !TIME.test(closing) || closing <= opening) {
     return { ok: false, error: "err_generic" };
   }
+  const upiRaw = String(form.get("upi_id") ?? "").trim();
+  if (upiRaw && !isValidUpiId(upiRaw)) return { ok: false, error: "err_upi" };
+  const fee = parseAmount(form.get("default_fee") || "0", 0, 100000);
+  if (fee === null) return { ok: false, error: "err_amount" };
   const supabase = await supabaseServer();
   const { error } = await supabase
     .from("clinics")
-    .update({ name, phone, address: cleanText(form.get("address"), 300) || null, slots_per_day: slots, opening_time: opening, closing_time: closing })
+    .update({
+      name,
+      phone,
+      address: cleanText(form.get("address"), 300) || null,
+      slots_per_day: slots,
+      opening_time: opening,
+      closing_time: closing,
+      upi_id: upiRaw || null,
+      default_fee: fee,
+      booking_otp: form.get("booking_otp") === "on",
+    })
     .eq("id", staff.clinic_id);
   if (error) return { ok: false, error: "err_generic" };
   await audit(staff, "update", "clinics", staff.clinic_id);
