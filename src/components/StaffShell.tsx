@@ -1,31 +1,32 @@
-import Link from "next/link";
 import type { Staff } from "@/lib/staff";
 import { getT } from "@/lib/lang-server";
 import { logout } from "@/app/login/actions";
 import { LangSwitch } from "./LangSwitch";
+import { BrandMark } from "./BrandMark";
+import { NavLinks, type NavItem } from "./NavLinks";
 import type { DictKey } from "@/lib/i18n";
 
-const NAV: Record<Staff["role"], { href: string; key: DictKey }[]> = {
+const NAV: Record<Staff["role"], { href: string; key: DictKey; icon: NavItem["icon"] }[]> = {
   attender: [
-    { href: "/desk", key: "attenderDesk" },
-    { href: "/today", key: "todaysList" },
-    { href: "/messages", key: "messages" },
+    { href: "/desk", key: "attenderDesk", icon: "desk" },
+    { href: "/today", key: "todaysList", icon: "list" },
+    { href: "/messages", key: "messages", icon: "messages" },
   ],
   doctor: [
-    { href: "/doctor", key: "doctorView" },
-    { href: "/today", key: "todaysList" },
-    { href: "/money", key: "money" },
-    { href: "/messages", key: "messages" },
-    { href: "/reports", key: "reports" },
+    { href: "/doctor", key: "doctorView", icon: "doctor" },
+    { href: "/today", key: "todaysList", icon: "list" },
+    { href: "/money", key: "money", icon: "money" },
+    { href: "/messages", key: "messages", icon: "messages" },
+    { href: "/reports", key: "reports", icon: "reports" },
   ],
   admin: [
-    { href: "/admin", key: "settings" },
-    { href: "/desk", key: "attenderDesk" },
-    { href: "/today", key: "todaysList" },
-    { href: "/money", key: "money" },
-    { href: "/messages", key: "messages" },
-    { href: "/admin/staff", key: "staffNav" },
-    { href: "/reports", key: "reports" },
+    { href: "/admin", key: "settings", icon: "settings" },
+    { href: "/desk", key: "attenderDesk", icon: "desk" },
+    { href: "/today", key: "todaysList", icon: "list" },
+    { href: "/money", key: "money", icon: "money" },
+    { href: "/messages", key: "messages", icon: "messages" },
+    { href: "/admin/staff", key: "staffNav", icon: "staff" },
+    { href: "/reports", key: "reports", icon: "reports" },
   ],
 };
 
@@ -41,26 +42,25 @@ export async function StaffShell({
   const { t } = await getT();
   return (
     <div className="mx-auto min-h-screen max-w-3xl px-4 pb-16">
-      <header className="no-print sticky top-0 z-10 -mx-4 mb-4 bg-white/95 px-4 py-3 shadow-sm">
+      <header className="no-print sticky top-0 z-10 -mx-4 mb-5 bg-gradient-to-r from-[#0b3b44] via-teal-800 to-emerald-700 px-4 pb-3 pt-3 text-white shadow-lg shadow-teal-950/20 sm:rounded-b-3xl">
         <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <div className="truncate text-lg font-bold text-teal-800">{staff.clinic.name}</div>
-            <div className="truncate text-sm text-slate-500">{staff.name}</div>
+          <div className="flex min-w-0 items-center gap-3">
+            <BrandMark size={40} />
+            <div className="min-w-0">
+              <div className="truncate text-lg font-bold leading-tight">{staff.clinic.name}</div>
+              <div className="truncate text-sm text-teal-100/90">
+                {staff.name} · {t(`role_${staff.role}` as DictKey)}
+              </div>
+            </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2 [&_button]:border-white/40 [&_button]:bg-white/10 [&_button]:text-white">
             <LangSwitch />
             <form action={logout}>
-              <button className="btn-small bg-slate-100 text-slate-700">{t("logout")}</button>
+              <button className="btn-small bg-white/10 text-white ring-1 ring-white/30">{t("logout")}</button>
             </form>
           </div>
         </div>
-        <nav className="mt-3 flex gap-2 overflow-x-auto">
-          {NAV[staff.role].map((n) => (
-            <Link key={n.href} href={n.href} className="btn-small shrink-0 bg-teal-50 text-teal-900">
-              {t(n.key)}
-            </Link>
-          ))}
-        </nav>
+        <NavLinks items={NAV[staff.role].map((n) => ({ href: n.href, label: t(n.key), icon: n.icon }))} />
       </header>
       {denied && <p className="error-box mb-4">{t("err_not_allowed")}</p>}
       {children}

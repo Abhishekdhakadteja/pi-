@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState, useTransition } from "react";
 import { useT } from "@/components/LangProvider";
-import { addExpense, deleteEntry, recordPayment } from "./actions";
+import { addExpense, deleteEntry, recordPayment, updateExpense, updatePayment } from "./actions";
 import type { ErrorCode } from "@/lib/i18n";
 
 const CATS = ["rent", "salary", "medicine_purchase", "electricity", "equipment", "other"] as const;
@@ -105,5 +105,87 @@ export function DeleteEntry({ table, id }: { table: "payments" | "expenses"; id:
     >
       ✕
     </button>
+  );
+}
+
+export type EditableEntry =
+  | { table: "payments"; id: string; amount: number; discount: number; mode: string; kind: string; note: string | null }
+  | { table: "expenses"; id: string; amount: number; category: string; note: string | null };
+
+/** ✎ button that opens a small form to fix a wrong amount, mode, category or note. */
+export function EditEntry({ entry }: { entry: EditableEntry }) {
+  const { t } = useT();
+  const [open, setOpen] = useState(false);
+  const [msg, setMsg] = useState<ErrorCode | null>(null);
+  const [pending, start] = useTransition();
+  if (!open)
+    return (
+      <button className="btn-small bg-white text-slate-600" aria-label={t("editWord")} title={t("editWord")} onClick={() => setOpen(true)}>
+        ✎
+      </button>
+    );
+  return (
+    <form
+      className="mt-2 flex w-full flex-col gap-2 rounded-xl bg-amber-50 p-3 ring-1 ring-amber-200"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const d = new FormData(e.currentTarget);
+        const amount = String(d.get("amount") ?? "");
+        const note = String(d.get("note") ?? "");
+        start(async () => {
+          const r =
+            entry.table === "payments"
+              ? await updatePayment(entry.id, {
+                  amount,
+                  discount: String(entry.discount),
+                  mode: String(d.get("mode")),
+                  kind: String(d.get("kind")),
+                  note,
+                })
+              : await updateExpense(entry.id, { amount, category: String(d.get("category")), note });
+          if (r.ok) setOpen(false);
+          else setMsg(r.error);
+        });
+      }}
+    >
+      <div className="grid grid-cols-2 gap-2">
+        <input name="amount" className="input" inputMode="numeric" defaultValue={entry.amount} required maxLength={8} aria-label={t("amount")} autoFocus />
+        {entry.table === "payments" ? (
+          <select name="mode" className="input" defaultValue={entry.mode} aria-label={t("byMode")}>
+            <option value="cash">{t("mode_cash")}</option>
+            <option value="upi">{t("mode_upi")}</option>
+            <option value="card">{t("mode_card")}</option>
+            <option value="other">{t("mode_other")}</option>
+          </select>
+        ) : (
+          <select name="category" className="input" defaultValue={entry.category} aria-label={t("category")}>
+            {CATS.map((c) => (
+              <option key={c} value={c}>
+                {t(`cat_${c}`)}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+      {entry.table === "payments" && (
+        <select name="kind" className="input" defaultValue={entry.kind} aria-label={t("category")}>
+          {KINDS.map((k) => (
+            <option key={k} value={k}>
+              {t(`pkind_${k}`)}
+            </option>
+          ))}
+        </select>
+      )}
+      <input name="note" className="input" placeholder={t("note")} maxLength={300} defaultValue={entry.note ?? ""} />
+      {msg && <p className="error-box">{t(msg)}</p>}
+      <div className="grid grid-cols-2 gap-2">
+        <button type="button" className="btn-small bg-white text-slate-600" onClick={() => setOpen(false)}>
+          {t("cancel")}
+        </button>
+        <button className="btn-small bg-teal-700 text-white" disabled={pending}>
+          {pending ? t("loading") : t("save")}
+        </button>
+      </div>
+    </form>
   );
 }

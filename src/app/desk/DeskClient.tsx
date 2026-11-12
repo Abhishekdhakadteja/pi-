@@ -1,7 +1,8 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useT } from "@/components/LangProvider";
-import { addPatient, bookPatient, searchPatients } from "./actions";
+import { addPatient, bookPatient, searchPatients, updatePatient } from "./actions";
+import { ComplaintInput } from "@/components/ComplaintInput";
 import { addDays, formatDate, formatTime, todayIST } from "@/lib/dates";
 import { normalizePhone } from "@/lib/validate";
 import type { BookResult, PatientSummary } from "@/lib/types";
@@ -19,6 +20,8 @@ export function DeskClient() {
   const [otherDay, setOtherDay] = useState(false);
   const [day, setDay] = useState(addDays(todayIST(), 1));
   const [error, setError] = useState<ErrorCode | null>(null);
+  const [complaint, setComplaint] = useState("");
+  const [editing, setEditing] = useState(false);
   const [pending, start] = useTransition();
 
   function run<T>(fn: () => Promise<T>, then: (v: T) => void) {
@@ -40,6 +43,8 @@ export function DeskClient() {
     setBooking(null);
     setOtherDay(false);
     setError(null);
+    setComplaint("");
+    setEditing(false);
   }
 
   function doSearch(e: React.FormEvent) {
@@ -59,7 +64,7 @@ export function DeskClient() {
   function doBook(date?: string) {
     if (!chosen) return;
     run(
-      () => bookPatient(chosen.id, date),
+      () => bookPatient(chosen.id, date, complaint),
       (r) => {
         if (!r.ok) return setError(r.error);
         setBooking(r.booking);
@@ -106,6 +111,7 @@ export function DeskClient() {
                     <span className="block text-xl font-semibold">{p.name}</span>
                     <span className="text-slate-600">
                       {p.age != null ? `${p.age} ${t("years")}` : ""} {p.gender ? `· ${t(p.gender as "male")}` : ""}
+                      {p.address ? ` · ${p.address}` : ""}
                     </span>
                   </span>
                   <span className="text-right text-sm text-slate-500">
@@ -140,14 +146,44 @@ export function DeskClient() {
         />
       )}
 
-      {view === "patient" && chosen && (
+      {view === "patient" && chosen && editing && (
+        <PatientFields
+          title={t("editDetails")}
+          initial={chosen}
+          pending={pending}
+          submitLabel={t("save")}
+          onCancel={() => setEditing(false)}
+          onSubmit={(input) =>
+            run(
+              () => updatePatient(chosen.id, input),
+              (r) => {
+                if (!r.ok) return setError(r.error);
+                setChosen({ ...r.patient, last_visit: chosen.last_visit });
+                setPatients((ps) => ps?.map((p) => (p.id === chosen.id ? { ...r.patient, last_visit: p.last_visit } : p)) ?? ps);
+                setEditing(false);
+              },
+            )
+          }
+        />
+      )}
+
+      {view === "patient" && chosen && !editing && (
         <div className="card flex flex-col gap-4">
-          <div>
-            <div className="text-2xl font-bold">{chosen.name}</div>
-            <div className="text-lg text-slate-600">
-              {chosen.phone} {chosen.age != null ? `· ${chosen.age} ${t("years")}` : ""}
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-2xl font-bold">{chosen.name}</div>
+              <div className="text-lg text-slate-600">
+                {chosen.phone}
+                {chosen.age != null ? ` · ${chosen.age} ${t("years")}` : ""}
+                {chosen.gender ? ` · ${t(chosen.gender as "male")}` : ""}
+              </div>
+              {chosen.address && <div className="text-slate-500">📍 {chosen.address}</div>}
             </div>
+            <button type="button" className="btn-small shrink-0 bg-slate-100 text-slate-700" onClick={() => setEditing(true)}>
+              ✎ {t("editWord")}
+            </button>
           </div>
+          <ComplaintInput value={complaint} onChange={setComplaint} />
           <button className="btn-primary min-h-20 text-2xl" disabled={pending} onClick={() => doBook()}>
             {pending ? t("loading") : t("bookToday")}
           </button>
@@ -258,6 +294,67 @@ function AddPatientForm({
       </label>
       {localErr && <p className="error-box" role="alert">{t(localErr)}</p>}
       <button className="btn-primary" disabled={pending}>{pending ? t("loading") : t("addPatient")}</button>
+      <button type="button" className="btn-small text-slate-600 underline" onClick={onCancel}>{t("cancel")}</button>
+    </form>
+  );
+}
+
+function PatientFields({
+  title,
+  initial,
+  pending,
+  submitLabel,
+  onSubmit,
+  onCancel,
+}: {
+  title: string;
+  initial: PatientSummary;
+  pending: boolean;
+  submitLabel: string;
+  onSubmit: (v: { name: string; age: string; gender: string; address: string }) => void;
+  onCancel: () => void;
+}) {
+  const { t } = useT();
+  return (
+    <form
+      className="card flex flex-col gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const f = new FormData(e.currentTarget);
+        onSubmit({
+          name: String(f.get("name") ?? ""),
+          age: String(f.get("age") ?? ""),
+          gender: String(f.get("gender") ?? ""),
+          address: String(f.get("address") ?? ""),
+        });
+      }}
+    >
+      <h2 className="text-xl font-bold">{title}</h2>
+      <div className="text-slate-500">{initial.phone}</div>
+      <div>
+        <label className="label" htmlFor="ename">{t("name")}</label>
+        <input id="ename" name="name" className="input" required maxLength={120} defaultValue={initial.name} autoFocus />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="label" htmlFor="eage">{t("age")}</label>
+          <input id="eage" name="age" className="input" inputMode="numeric" maxLength={3} defaultValue={initial.age ?? ""} />
+        </div>
+        <div>
+          <label className="label" htmlFor="egender">{t("gender")}</label>
+          <select id="egender" name="gender" className="input" defaultValue={initial.gender ?? ""}>
+            <option value="">-</option>
+            <option value="male">{t("male")}</option>
+            <option value="female">{t("female")}</option>
+            <option value="other">{t("other")}</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label className="label" htmlFor="eaddress">{t("address")}</label>
+        <input id="eaddress" name="address" className="input" maxLength={300} defaultValue={initial.address ?? ""} />
+      </div>
+      <button className="btn-primary" disabled={pending}>{pending ? t("loading") : submitLabel}</button>
       <button type="button" className="btn-small text-slate-600 underline" onClick={onCancel}>{t("cancel")}</button>
     </form>
   );

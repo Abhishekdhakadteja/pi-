@@ -2,7 +2,7 @@
 -- Everything runs inside one transaction and is rolled back: no data is left behind.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(40);
+select plan(45);
 
 -- ---------- Fixed test data: two clinics, staff in each ----------
 insert into auth.users (id, email, aud, role) values
@@ -129,6 +129,10 @@ select throws_ok(
   '42501', null, 'nobody can record a fee in another staff member''s name');
 delete from public.payments;
 select is((select count(*)::int from public.payments), 1, 'ATTENDER cannot delete a fee (admin only)');
+update public.payments set amount = 350;
+select is((select amount from public.payments limit 1), 350, 'ATTENDER can fix a fee they collected today');
+select throws_ok($$update public.payments set paid_on = public.clinic_today() - 1$$,
+  '42501', null, 'ATTENDER cannot move a fee to another day');
 select is((select count(*)::int from public.expenses), 0, 'ATTENDER cannot see clinic expenses');
 select throws_ok(
   $$insert into public.expenses (clinic_id, amount, category, created_by)
@@ -144,6 +148,10 @@ select lives_ok(
   $$insert into public.expenses (clinic_id, amount, category, created_by)
     values ('00000000-0000-0000-0000-00000000c11a', 5000, 'rent', '00000000-0000-0000-0000-0000000000a2')$$,
   'DOCTOR (owner) can add an expense');
+update public.expenses set amount = 500;
+select is((select amount from public.expenses limit 1), 500, 'DOCTOR can fix a wrong expense amount');
+update public.payments set amount = 400;
+select is((select amount from public.payments limit 1), 400, 'DOCTOR can fix any fee');
 select lives_ok(
   $$insert into public.prescription_items (clinic_id, appointment_id, patient_id, medicine, days)
     values ('00000000-0000-0000-0000-00000000c11a', '00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000000f1', 'Tab X', 5)$$,
@@ -152,6 +160,9 @@ select lives_ok(
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}';
 select is((select count(*)::int from public.payments) + (select count(*)::int from public.prescription_items), 0,
   'CLINIC B staff cannot see Clinic A fees or prescriptions');
+update public.expenses set amount = 1;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}';
+select is((select amount from public.expenses limit 1), 500, 'CLINIC B staff cannot change Clinic A expenses');
 
 reset role;
 set local role anon;
