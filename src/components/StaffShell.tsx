@@ -9,17 +9,22 @@ const NAV: Record<Staff["role"], { href: string; key: DictKey }[]> = {
   attender: [
     { href: "/desk", key: "attenderDesk" },
     { href: "/today", key: "todaysList" },
+    { href: "/messages", key: "messages" },
   ],
   doctor: [
     { href: "/doctor", key: "doctorView" },
     { href: "/today", key: "todaysList" },
+    { href: "/money", key: "money" },
+    { href: "/messages", key: "messages" },
     { href: "/reports", key: "reports" },
   ],
   admin: [
     { href: "/admin", key: "settings" },
     { href: "/desk", key: "attenderDesk" },
     { href: "/today", key: "todaysList" },
-    { href: "/admin/reminders", key: "reminders" },
+    { href: "/money", key: "money" },
+    { href: "/messages", key: "messages" },
+    { href: "/admin/staff", key: "staffNav" },
     { href: "/reports", key: "reports" },
   ],
 };

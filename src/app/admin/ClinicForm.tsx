@@ -4,7 +4,17 @@ import { useT } from "@/components/LangProvider";
 import { updateClinic } from "./actions";
 import type { ErrorCode } from "@/lib/i18n";
 
-type Clinic = { name: string; address: string | null; phone: string | null; slots_per_day: number; opening_time: string; closing_time: string };
+type Clinic = {
+  name: string;
+  address: string | null;
+  phone: string | null;
+  slots_per_day: number;
+  opening_time: string;
+  closing_time: string;
+  upi_id: string | null;
+  default_fee: number;
+  booking_otp: boolean;
+};
 
 export function ClinicForm({ clinic }: { clinic: Clinic }) {
   const { t } = useT();
@@ -48,6 +58,20 @@ export function ClinicForm({ clinic }: { clinic: Clinic }) {
           <input id="close" name="closing_time" type="time" className="input" defaultValue={clinic.closing_time.slice(0, 5)} required />
         </div>
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="label" htmlFor="upi">{t("upiId")}</label>
+          <input id="upi" name="upi_id" className="input" defaultValue={clinic.upi_id ?? ""} placeholder="drname@okaxis" maxLength={130} autoCapitalize="none" />
+        </div>
+        <div>
+          <label className="label" htmlFor="fee">{t("defaultFee")}</label>
+          <input id="fee" name="default_fee" className="input" inputMode="numeric" defaultValue={clinic.default_fee} maxLength={6} />
+        </div>
+      </div>
+      <label className="flex items-center gap-3 text-lg">
+        <input type="checkbox" name="booking_otp" defaultChecked={clinic.booking_otp} className="h-6 w-6" />
+        {t("bookingOtp")}
+      </label>
       {msg && <p className={msg === "saved" ? "ok-box" : "error-box"}>{t(msg)}</p>}
       <button className="btn-primary" disabled={pending}>{pending ? t("loading") : t("save")}</button>
     </form>

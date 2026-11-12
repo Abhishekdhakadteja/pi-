@@ -8,6 +8,8 @@ import { Counters, countStatuses } from "@/components/Counters";
 import { LiveRefresh } from "@/components/LiveRefresh";
 import { StatusBadge } from "@/components/StatusBadge";
 import { MissedButton } from "./MissedButton";
+import { FeeButton } from "@/components/FeeButton";
+import { rupees } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +33,17 @@ export default async function TodayPage() {
     patient: { name: string; age: number | null } | null;
   }[];
   await audit(staff, "view_list", "appointments", null, { date: today, count: rows.length });
+  const { data: pays } = await supabase
+    .from("payments")
+    .select("appointment_id, amount, kind")
+    .eq("clinic_id", staff.clinic_id)
+    .eq("paid_on", today);
+  const paidBy = new Map<string, number>();
+  let collection = 0;
+  for (const p of pays ?? []) {
+    collection += p.amount;
+    if (p.appointment_id && p.kind === "consultation") paidBy.set(p.appointment_id, p.amount);
+  }
   const c = countStatuses(rows);
   const canMarkMissed = staff.role !== "doctor";
 
@@ -43,10 +56,14 @@ export default async function TodayPage() {
         <LiveRefresh clinicId={staff.clinic_id} date={today} />
       </div>
       <Counters {...c} t={t} />
+      <div className="card mt-3 flex items-center justify-between p-3">
+        <span className="text-lg text-slate-600">{t("todayCollection")}</span>
+        <span className="text-2xl font-black text-green-700" data-testid="today-collection">{rupees(collection)}</span>
+      </div>
       <ul className="mt-4 flex flex-col gap-2" data-testid="today-list">
         {rows.length === 0 && <li className="card text-center text-lg text-slate-500">{t("noPatientsToday")}</li>}
         {rows.map((r) => (
-          <li key={r.id} className="card flex items-center gap-3 p-3" data-testid={`row-${r.token_number}`}>
+          <li key={r.id} className="card flex flex-wrap items-center gap-3 p-3" data-testid={`row-${r.token_number}`}>
             <span className="w-14 shrink-0 text-center text-3xl font-black text-teal-700">{r.token_number}</span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-lg font-semibold">{r.patient?.name}</span>
@@ -58,6 +75,17 @@ export default async function TodayPage() {
               <StatusBadge status={r.status} t={t} />
               {canMarkMissed && ["booked", "waiting", "in_room"].includes(r.status) && <MissedButton id={r.id} />}
             </span>
+            {r.status !== "missed" && (
+              <span className="flex w-full justify-end">
+                <FeeButton
+                  appointmentId={r.id}
+                  defaultFee={staff.clinic.default_fee}
+                  upiId={staff.clinic.upi_id}
+                  payee={staff.clinic.name}
+                  paid={paidBy.get(r.id) ?? null}
+                />
+              </span>
+            )}
           </li>
         ))}
       </ul>

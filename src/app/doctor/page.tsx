@@ -7,6 +7,7 @@ import { formatDate, todayIST } from "@/lib/dates";
 import { Counters, countStatuses } from "@/components/Counters";
 import { LiveRefresh } from "@/components/LiveRefresh";
 import { CallNextButton, CompleteButton, CourseForm, VisitForm } from "./DoctorForms";
+import { RxForm } from "./RxForm";
 
 export const dynamic = "force-dynamic";
 
@@ -35,9 +36,10 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
   let past: { date: string; doctor_notes: string | null; diagnosis: string | null }[] = [];
   let current: { doctor_notes: string | null; diagnosis: string | null } | null = null;
   let course: { days: number; end_date: string; next_visit_date: string } | null = null;
+  let rx: { medicine: string; dose: string | null; timing: string | null; days: number; note: string | null }[] = [];
 
   if (inRoom) {
-    const [{ data: p }, { data: visits }, { data: lastAppt }, { data: crs }] = await Promise.all([
+    const [{ data: p }, { data: visits }, { data: lastAppt }, { data: crs }, { data: rxRows }] = await Promise.all([
       supabase.from("patients").select("id, name, age, gender").eq("id", inRoom.patient_id).single(),
       supabase
         .from("visits")
@@ -54,7 +56,9 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
         .order("date", { ascending: false })
         .limit(1),
       supabase.from("treatment_courses").select("days, end_date, next_visit_date").eq("appointment_id", inRoom.id).maybeSingle(),
+      supabase.from("prescription_items").select("medicine, dose, timing, days, note").eq("appointment_id", inRoom.id).order("position"),
     ]);
+    rx = rxRows ?? [];
     patient = p;
     lastVisit = lastAppt?.[0]?.date ?? null;
     const vs = (visits ?? []) as unknown as {
@@ -120,6 +124,11 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
 
           <section className="card">
             <VisitForm key={`v-${inRoom.id}`} appointmentId={inRoom.id} notes={current?.doctor_notes ?? ""} diagnosis={current?.diagnosis ?? ""} />
+          </section>
+
+          <section className="card">
+            <h2 className="mb-2 text-xl font-bold">{t("prescription")}</h2>
+            <RxForm key={`rx-${inRoom.id}`} appointmentId={inRoom.id} initial={rx} />
           </section>
 
           <section className="card">

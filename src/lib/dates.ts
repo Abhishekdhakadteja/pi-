@@ -66,3 +66,10 @@ export function formatTime(t: string): string {
   const h12 = h % 12 === 0 ? 12 : h % 12;
   return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
 }
+
+export type MoneyPeriod = Period | "year";
+/** Like periodRange, plus the calendar year (Jan–Dec). */
+export function moneyRange(period: MoneyPeriod, today = todayIST()): { from: string; to: string } {
+  if (period === "year") return { from: today.slice(0, 4) + "-01-01", to: today.slice(0, 4) + "-12-31" };
+  return periodRange(period, today);
+}

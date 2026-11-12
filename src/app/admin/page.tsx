@@ -12,7 +12,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const supabase = await supabaseServer();
   const { data: clinic } = await supabase
     .from("clinics")
-    .select("name, address, phone, slots_per_day, opening_time, closing_time")
+    .select("name, address, phone, slots_per_day, opening_time, closing_time, upi_id, default_fee, booking_otp")
     .eq("id", staff.clinic_id)
     .single();
   return (
@@ -22,7 +22,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <Link href="/admin/poster" className="btn-primary min-h-20 text-2xl">
           ▦ {t("generateQr")}
         </Link>
-        <Link href="/admin/reminders" className="btn-secondary">{t("reminders")}</Link>
+        <div className="grid grid-cols-2 gap-3">
+          <Link href="/admin/staff" className="btn-secondary">{t("staffNav")}</Link>
+          <Link href="/money" className="btn-secondary">{t("balanceSheet")}</Link>
+          <Link href="/messages" className="btn-secondary">{t("messages")}</Link>
+          <Link href="/admin/reminders" className="btn-secondary">{t("reminders")}</Link>
+        </div>
         <section className="card">
           <h2 className="mb-3 text-xl font-bold">{t("clinicSettings")}</h2>
           {clinic && <ClinicForm clinic={clinic} />}

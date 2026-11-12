@@ -13,7 +13,7 @@ export default async function RemindersPage() {
   const { t, lang } = await getT();
   const supabase = await supabaseServer();
   const [{ data: clinic }, { data: reminders }, { data: optedOut }] = await Promise.all([
-    supabase.from("clinics").select("reminder_template_hi, reminder_template_en").eq("id", staff.clinic_id).single(),
+    supabase.from("clinics").select("reminder_template_hi, reminder_template_en, followup_template_hi, followup_template_en").eq("id", staff.clinic_id).single(),
     supabase
       .from("reminders")
       .select("id, kind, channel, status, sent_at, created_at, opted_out, patient:patients(name, phone)")
@@ -63,7 +63,7 @@ export default async function RemindersPage() {
           )}
         </section>
         <section className="card">
-          {clinic && <TemplateForm hi={clinic.reminder_template_hi} en={clinic.reminder_template_en} />}
+          {clinic && <TemplateForm hi={clinic.reminder_template_hi} en={clinic.reminder_template_en} fhi={clinic.followup_template_hi} fen={clinic.followup_template_en} />}
         </section>
         <section className="card flex flex-col gap-3">
           <OptOutForm />

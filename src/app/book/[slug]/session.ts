@@ -7,7 +7,12 @@ import { normalizePhone } from "@/lib/validate";
 // Patient (public page) session helpers. Server-only: NOT callable from the browser.
 export const COOKIE = "ce_pt";
 const LINK_DAYS = 14;
-type Session = { phone: string; clinic: string };
+/** v === false: mobile number typed without OTP (clinic has OTP off, no SMS cost). */
+type Session = { phone: string; clinic: string; v?: boolean };
+
+export function isVerified(s: Session) {
+  return s.v !== false;
+}
 
 export async function getSession(clinicId: string): Promise<Session | null> {
   const s = readToken<Session>((await cookies()).get(COOKIE)?.value);

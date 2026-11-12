@@ -10,13 +10,15 @@ import type { ErrorCode } from "@/lib/i18n";
 
 type Res = { ok: true; count?: number } | { ok: false; error: ErrorCode };
 
-export async function saveTemplates(hi: string, en: string): Promise<Res> {
+export async function saveTemplates(hi: string, en: string, fhi: string, fen: string): Promise<Res> {
   const staff = await assertRole(["admin"]);
-  const h = hi.trim();
-  const e = en.trim();
-  if (!isValidTemplate(h) || !isValidTemplate(e)) return { ok: false, error: "err_generic" };
+  const v = [hi, en, fhi, fen].map((x) => x.trim());
+  if (!v.every(isValidTemplate)) return { ok: false, error: "err_generic" };
   const supabase = await supabaseServer();
-  const { error } = await supabase.from("clinics").update({ reminder_template_hi: h, reminder_template_en: e }).eq("id", staff.clinic_id);
+  const { error } = await supabase
+    .from("clinics")
+    .update({ reminder_template_hi: v[0], reminder_template_en: v[1], followup_template_hi: v[2], followup_template_en: v[3] })
+    .eq("id", staff.clinic_id);
   if (error) return { ok: false, error: "err_generic" };
   await audit(staff, "update_template", "clinics", staff.clinic_id);
   revalidatePath("/admin/reminders");
