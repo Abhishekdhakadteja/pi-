@@ -2,6 +2,7 @@
 import { useActionState } from "react";
 import { login, type LoginState } from "./actions";
 import { useT } from "@/components/LangProvider";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export function LoginForm() {
   const { t } = useT();
@@ -14,7 +15,7 @@ export function LoginForm() {
       </div>
       <div>
         <label className="label" htmlFor="password">{t("password")}</label>
-        <input id="password" name="password" type="password" className="input" autoComplete="current-password" required />
+        <PasswordInput id="password" name="password" className="input" autoComplete="current-password" required />
       </div>
       {state.error && <p className="error-box" role="alert">{t(state.error)}</p>}
       <button className="btn-primary" disabled={pending}>{pending ? t("loading") : t("login")}</button>

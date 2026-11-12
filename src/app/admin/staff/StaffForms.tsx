@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useState, useTransition } from "react";
 import { useT } from "@/components/LangProvider";
+import { PasswordInput } from "@/components/PasswordInput";
 import { addStaff, setStaffActive } from "./actions";
 import type { ErrorCode } from "@/lib/i18n";
 
@@ -31,7 +32,7 @@ export function AddStaffForm() {
       </select>
       <input name="phone" className="input" inputMode="numeric" placeholder={t("phone")} maxLength={16} />
       <input name="email" className="input" type="email" placeholder={`${t("emailWord")} (optional)`} maxLength={120} autoCapitalize="none" />
-      <input name="password" className="input" type="password" placeholder={t("password")} required minLength={8} maxLength={72} autoComplete="new-password" />
+      <PasswordInput name="password" className="input" placeholder={t("password")} required minLength={8} maxLength={72} autoComplete="new-password" />
       {msg && <p className={msg === "saved" ? "ok-box" : "error-box"}>{t(msg)}</p>}
       <button className="btn-primary" disabled={pending}>{pending ? t("loading") : t("addStaff")}</button>
     </form>

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useT } from "@/components/LangProvider";
-import { recordPayment } from "@/app/money/actions";
+import { recordPayment, updatePayment } from "@/app/money/actions";
 import { upiLink } from "@/lib/share";
 import { rupees } from "@/lib/money";
 import { UpiQr } from "./UpiQr";
@@ -19,17 +19,25 @@ export function FeeButton({
   defaultFee: number;
   upiId: string | null;
   payee: string;
-  paid: number | null;
+  paid: { id: string; amount: number; discount: number; mode: string } | null;
 }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState(String(defaultFee || ""));
-  const [discount, setDiscount] = useState("");
-  const [mode, setMode] = useState<"cash" | "upi">("cash");
+  const [amount, setAmount] = useState(String(paid ? paid.amount : defaultFee || ""));
+  const [discount, setDiscount] = useState(paid?.discount ? String(paid.discount) : "");
+  const [mode, setMode] = useState<"cash" | "upi">(paid?.mode === "upi" ? "upi" : "cash");
   const [err, setErr] = useState<ErrorCode | null>(null);
   const [pending, start] = useTransition();
 
-  if (paid !== null) return <span className="rounded-lg bg-green-50 px-2 py-1 text-sm font-semibold text-green-800">✓ {rupees(paid)}</span>;
+  if (paid !== null && !open)
+    return (
+      <span className="flex items-center gap-1">
+        <span className="rounded-lg bg-green-50 px-2 py-1 text-sm font-semibold text-green-800 ring-1 ring-green-200">✓ {rupees(paid.amount)}</span>
+        <button className="btn-small min-h-9 bg-white px-2 text-sm text-slate-500" onClick={() => setOpen(true)} title={t("fixFee")}>
+          ✎ {t("fixFee")}
+        </button>
+      </span>
+    );
   if (!open)
     return (
       <button className="btn-small border-2 border-teal-300 bg-white text-teal-800" onClick={() => setOpen(true)}>
@@ -81,12 +89,15 @@ export function FeeButton({
           disabled={pending}
           onClick={() =>
             start(async () => {
-              const r = await recordPayment({ appointmentId, amount, discount, mode });
+              const r = paid
+                ? await updatePayment(paid.id, { amount, discount, mode })
+                : await recordPayment({ appointmentId, amount, discount, mode });
               if (!r.ok) setErr(r.error);
+              else setOpen(false);
             })
           }
         >
-          {pending ? t("loading") : `${t("feePaid")} ${amt ? rupees(amt) : ""}`}
+          {pending ? t("loading") : `${paid ? t("save") : t("feePaid")} ${amt ? rupees(amt) : ""}`}
         </button>
       </div>
     </div>

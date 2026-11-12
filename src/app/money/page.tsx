@@ -7,7 +7,7 @@ import { audit } from "@/lib/audit";
 import { formatDate, moneyRange, type MoneyPeriod } from "@/lib/dates";
 import { rupees, summarize, type ExpenseRow, type PaymentRow } from "@/lib/money";
 import type { DictKey } from "@/lib/i18n";
-import { DeleteEntry, ExpenseForm, IncomeForm } from "./MoneyForms";
+import { DeleteEntry, EditEntry, ExpenseForm, IncomeForm, type EditableEntry } from "./MoneyForms";
 
 export const dynamic = "force-dynamic";
 const PERIODS: { p: MoneyPeriod; key: DictKey }[] = [
@@ -50,8 +50,24 @@ export default async function MoneyPage({ searchParams }: { searchParams: Promis
   await audit(staff, "view", "payments", null, { period });
 
   const recent = [
-    ...payments.map((p) => ({ id: p.id, table: "payments" as const, day: p.paid_on, label: p.patient?.name ?? t(`pkind_${p.kind}` as DictKey), sub: `${t(`pkind_${p.kind}` as DictKey)} · ${t(`mode_${p.mode}` as DictKey)}${p.note ? " · " + p.note : ""}`, amount: p.amount })),
-    ...expenses.map((e) => ({ id: e.id, table: "expenses" as const, day: e.spent_on, label: t(`cat_${e.category}` as DictKey), sub: e.note ?? "", amount: -e.amount })),
+    ...payments.map((p) => ({
+      id: p.id,
+      table: "payments" as const,
+      day: p.paid_on,
+      label: p.patient?.name ?? t(`pkind_${p.kind}` as DictKey),
+      sub: `${t(`pkind_${p.kind}` as DictKey)} · ${t(`mode_${p.mode}` as DictKey)}${p.note ? " · " + p.note : ""}`,
+      amount: p.amount,
+      edit: { table: "payments", id: p.id, amount: p.amount, discount: p.discount, mode: p.mode, kind: p.kind, note: p.note } as EditableEntry,
+    })),
+    ...expenses.map((e) => ({
+      id: e.id,
+      table: "expenses" as const,
+      day: e.spent_on,
+      label: t(`cat_${e.category}` as DictKey),
+      sub: e.note ?? "",
+      amount: -e.amount,
+      edit: { table: "expenses", id: e.id, amount: e.amount, category: e.category, note: e.note } as EditableEntry,
+    })),
   ]
     .sort((a, b) => b.day.localeCompare(a.day))
     .slice(0, 60);
@@ -61,22 +77,22 @@ export default async function MoneyPage({ searchParams }: { searchParams: Promis
       <h1 className="mb-3 text-2xl font-bold">{t("balanceSheet")}</h1>
       <nav className="mb-4 grid grid-cols-4 gap-2">
         {PERIODS.map((x) => (
-          <Link key={x.p} href={`/money?p=${x.p}`} className={`btn-small text-center ${x.p === period ? "bg-teal-700 text-white" : "bg-teal-50 text-teal-900"}`}>
+          <Link key={x.p} href={`/money?p=${x.p}`} className={`btn-small text-center ${x.p === period ? "bg-gradient-to-r from-teal-700 to-emerald-600 text-white shadow-md" : "bg-white text-teal-900 ring-1 ring-slate-200"}`}>
             {t(x.key)}
           </Link>
         ))}
       </nav>
 
       <section className="grid grid-cols-3 gap-2 text-center" data-testid="money-summary">
-        <div className="card p-3">
+        <div className="card bg-gradient-to-b from-emerald-50 to-white p-3">
           <div className="text-sm text-slate-500">{t("income")}</div>
           <div className="text-xl font-black text-green-700">{rupees(s.income)}</div>
         </div>
-        <div className="card p-3">
+        <div className="card bg-gradient-to-b from-rose-50 to-white p-3">
           <div className="text-sm text-slate-500">{t("expensesWord")}</div>
           <div className="text-xl font-black text-red-700">{rupees(s.expenses)}</div>
         </div>
-        <div className="card p-3">
+        <div className="card bg-gradient-to-b from-teal-50 to-white p-3">
           <div className="text-sm text-slate-500">{t("net")}</div>
           <div className={`text-xl font-black ${s.net >= 0 ? "text-teal-800" : "text-red-700"}`}>{rupees(s.net)}</div>
         </div>
@@ -140,7 +156,7 @@ export default async function MoneyPage({ searchParams }: { searchParams: Promis
       <section className="card mt-3 p-3">
         <ul className="flex flex-col divide-y">
           {recent.map((r) => (
-            <li key={r.table + r.id} className="flex items-center gap-2 py-2">
+            <li key={r.table + r.id} className="flex flex-wrap items-center gap-2 py-2">
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold">{r.label}</span>
                 <span className="block truncate text-sm text-slate-500">
@@ -150,6 +166,7 @@ export default async function MoneyPage({ searchParams }: { searchParams: Promis
               <span className={`font-bold ${r.amount >= 0 ? "text-green-700" : "text-red-700"}`}>
                 {r.amount >= 0 ? rupees(r.amount) : "−" + rupees(-r.amount)}
               </span>
+              <EditEntry entry={r.edit} />
               {(r.table === "expenses" || staff.role === "admin") && <DeleteEntry table={r.table} id={r.id} />}
             </li>
           ))}

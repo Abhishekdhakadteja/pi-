@@ -20,7 +20,7 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
 
   const { data: todays } = await supabase
     .from("appointments")
-    .select("id, token_number, status, called_at, patient_id")
+    .select("id, token_number, status, called_at, patient_id, complaint")
     .eq("clinic_id", staff.clinic_id)
     .eq("date", today)
     .order("token_number");
@@ -31,7 +31,7 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
     .sort((a, b) => String(b.called_at).localeCompare(String(a.called_at)))[0];
   const waiting = rows.filter((r) => r.status === "waiting" || r.status === "booked").length;
 
-  let patient: { id: string; name: string; age: number | null; gender: string | null } | null = null;
+  let patient: { id: string; name: string; age: number | null; gender: string | null; address: string | null } | null = null;
   let lastVisit: string | null = null;
   let past: { date: string; doctor_notes: string | null; diagnosis: string | null }[] = [];
   let current: { doctor_notes: string | null; diagnosis: string | null } | null = null;
@@ -40,7 +40,7 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
 
   if (inRoom) {
     const [{ data: p }, { data: visits }, { data: lastAppt }, { data: crs }, { data: rxRows }] = await Promise.all([
-      supabase.from("patients").select("id, name, age, gender").eq("id", inRoom.patient_id).single(),
+      supabase.from("patients").select("id, name, age, gender, address").eq("id", inRoom.patient_id).single(),
       supabase
         .from("visits")
         .select("appointment_id, doctor_notes, diagnosis, created_at, appointment:appointments(date)")
@@ -103,6 +103,13 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
               {patient.gender ? ` · ${t(patient.gender as "male")}` : ""} · {t("lastVisit")}:{" "}
               {lastVisit ? formatDate(lastVisit, lang) : t("never")}
             </div>
+            {patient.address && <div className="text-slate-500">📍 {patient.address}</div>}
+            {inRoom.complaint && (
+              <div className="mt-3 rounded-xl bg-amber-50 p-3 ring-1 ring-amber-200">
+                <div className="text-sm font-semibold text-amber-800">🩺 {t("todayComplaint")}</div>
+                <div className="text-lg text-amber-950">{inRoom.complaint}</div>
+              </div>
+            )}
           </section>
 
           <section className="card">

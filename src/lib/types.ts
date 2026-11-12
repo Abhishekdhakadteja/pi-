@@ -23,5 +23,6 @@ export type PatientSummary = {
   phone: string;
   age: number | null;
   gender: string | null;
+  address?: string | null;
   last_visit: string | null;
 };
