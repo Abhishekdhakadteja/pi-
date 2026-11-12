@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 
 // Keeps the staff login session fresh, and sends logged-out visitors of staff pages to /login.
 // Role checks happen on each page (see src/lib/staff.ts).
-const STAFF_PREFIXES = ["/desk", "/doctor", "/admin", "/reports", "/today", "/money", "/messages", "/rx"];
+const STAFF_PREFIXES = ["/desk", "/doctor", "/admin", "/reports", "/today", "/money", "/messages", "/rx", "/owner"];
 
 export async function middleware(req: NextRequest) {
   let res = NextResponse.next({ request: req });
