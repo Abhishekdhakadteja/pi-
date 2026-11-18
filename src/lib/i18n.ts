@@ -291,7 +291,7 @@ const en = {
   hidePassword: "Hide password",
   todayComplaint: "Today's problem",
   fixFee: "Fix fee",
-  loginSubtitle: "Patients, fees, prescriptions and reminders in one place.",
+  loginSubtitle: "Secure sign-in for your clinic team.",
   secureNote: "Your clinic data is private and protected.",
   updated: "Updated",
 } as const;
@@ -574,7 +574,7 @@ const hi: Dict = {
   hidePassword: "पासवर्ड छिपाएँ",
   todayComplaint: "आज की तकलीफ़",
   fixFee: "फ़ीस सुधारें",
-  loginSubtitle: "मरीज़, फ़ीस, पर्ची और रिमाइंडर, सब एक जगह।",
+  loginSubtitle: "आपकी क्लिनिक टीम के लिए सुरक्षित लॉगिन।",
   secureNote: "आपके क्लिनिक का डेटा सुरक्षित और प्राइवेट है।",
   updated: "बदल दिया गया",
 };
