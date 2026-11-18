@@ -2,22 +2,23 @@ import { redirect } from "next/navigation";
 import { getT } from "@/lib/lang-server";
 import { getStaff, ROLE_HOME } from "@/lib/staff";
 import { LangSwitch } from "@/components/LangSwitch";
-import { BrandMark } from "@/components/BrandMark";
+import { BrandMark, BrandName } from "@/components/BrandMark";
 import { LoginForm } from "./LoginForm";
+import { SupportContact } from "@/components/SupportContact";
 
 export default async function LoginPage() {
   const staff = await getStaff();
   if (staff) redirect(ROLE_HOME[staff.role]);
-  const { t } = await getT();
+  const { t, lang } = await getT();
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col">
-      <section className="relative overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-[#0b3b44] via-teal-800 to-emerald-600 px-5 pb-16 pt-6 text-white shadow-xl shadow-teal-950/20">
+      <section className="relative overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-[#050b1a] via-[#0b2545] to-teal-700 px-5 pb-16 pt-6 text-white shadow-xl shadow-teal-950/20">
         <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" aria-hidden />
         <div className="pointer-events-none absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-emerald-300/10" aria-hidden />
         <div className="relative flex items-center justify-between">
           <span className="flex items-center gap-2 text-xl font-bold">
             <BrandMark size={36} />
-            {t("appName")}
+            <BrandName />
           </span>
           <span className="[&_button]:border-white/40 [&_button]:bg-white/10 [&_button]:text-white">
             <LangSwitch />
@@ -35,6 +36,9 @@ export default async function LoginPage() {
           </svg>
           {t("secureNote")}
         </p>
+        <div className="mt-6">
+          <SupportContact lang={lang} variant="compact" tone="light" />
+        </div>
       </div>
     </main>
   );

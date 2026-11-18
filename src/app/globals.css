@@ -1,7 +1,11 @@
 @import "tailwindcss";
 
-/* ClinicEase: big, clear, light. Built for cheap Android phones. */
+/* Clinic Easy: big, clear, light. Built for cheap Android phones. */
 /* Premium medical theme: deep teal + emerald, soft mint background, calm cards. */
+@theme inline {
+  --font-brand: var(--font-sora), system-ui, sans-serif;
+}
+
 :root {
   --bg: #f3f8f7;
   --fg: #0b1f2a;
@@ -70,4 +74,60 @@ body {
   .no-print { display: none !important; }
   body { background: white; }
   .card { box-shadow: none; }
+}
+
+/* ---------- Front page (dark "AI clinic OS" look) ---------- */
+@utility glass {
+  @apply rounded-2xl border border-white/10 bg-white/[0.04] shadow-[0_8px_32px_-12px_rgb(0_0_0/0.6)] backdrop-blur-md;
+}
+.landing h1 {
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+.landing-grid {
+  background-image:
+    linear-gradient(rgb(34 184 245 / 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(34 184 245 / 0.08) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at 50% 0%, #000 30%, transparent 75%);
+}
+.landing-gradient-text {
+  background: linear-gradient(90deg, #22f5d0, #22b8f5 50%, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.landing-orb::before {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  border-radius: 34%;
+  border: 1px solid rgb(34 184 245 / 0.35);
+  box-shadow: 0 0 60px rgb(34 184 245 / 0.35);
+  animation: landing-pulse 2.4s ease-out infinite;
+}
+.landing-ecg {
+  stroke-dasharray: 700;
+  stroke-dashoffset: 700;
+  animation: landing-draw 2.8s ease-in-out infinite;
+}
+.landing-dot {
+  box-shadow: 0 0 0 0 rgb(52 211 153 / 0.7);
+  animation: landing-ping 1.8s ease-out infinite;
+}
+@keyframes landing-pulse {
+  0% { transform: scale(0.92); opacity: 0.9; }
+  100% { transform: scale(1.25); opacity: 0; }
+}
+@keyframes landing-draw {
+  0% { stroke-dashoffset: 700; }
+  60%, 100% { stroke-dashoffset: 0; }
+}
+@keyframes landing-ping {
+  0% { box-shadow: 0 0 0 0 rgb(52 211 153 / 0.7); }
+  100% { box-shadow: 0 0 0 8px rgb(52 211 153 / 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-orb::before, .landing-ecg, .landing-dot { animation: none; }
+  .landing-ecg { stroke-dashoffset: 0; }
 }

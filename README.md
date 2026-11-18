@@ -1,4 +1,6 @@
-# ClinicEase (version 1)
+<p align="center"><img src="public/brand/clinic-easy-logo.svg" alt="Clinic Easy" width="420"></p>
+
+# Clinic Easy
 
 A simple app for small private clinics in India: front-desk booking, today's list, doctor view,
 QR booking for patients, live queue, medicine-course reminders and reports. Built for cheap
@@ -61,7 +63,7 @@ Patient booking page: `http://localhost:3000/book/demo` (development OTP: `12345
 | `CRON_SECRET` | Protects the daily reminder job URL | **YES** |
 | `INBOUND_WEBHOOK_SECRET` | Protects the incoming SMS/WhatsApp (STOP) webhook | **YES** |
 | `MESSAGING_PROVIDER` | `manual` (default, FREE: reminders wait on the Messages page and staff send each with one tap on their own WhatsApp). `log` = print only (development). Later `msg91` / `whatsapp` | no |
-| `OWNER_EMAILS` | Comma-separated emails of the ClinicEase owner(s). A logged-in user with one of these emails can open `/owner` to see all clinics, add a new clinic with its logins, and pause a clinic. Empty = the page is hidden (404). | no |
+| `OWNER_EMAILS` | Comma-separated emails of the Clinic Easy owner(s). A logged-in user with one of these emails can open `/owner` to see all clinics, add a new clinic with its logins, and pause a clinic. Empty = the page is hidden (404). | no |
 | `DEMO_OTP` | Fixed OTP for testing. **Ignored in production builds.** | no |
 
 Make random secrets with `openssl rand -hex 32`. Never put a secret in a variable that starts with `NEXT_PUBLIC_`.

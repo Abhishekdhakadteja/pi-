@@ -36,7 +36,7 @@ export function welcomeMessage(p: {
 }): string {
   const lines = [
     `नमस्ते Dr. ${p.doctorName} जी,`,
-    `${p.clinicName} के लिए ClinicEase तैयार है।`,
+    `${p.clinicName} के लिए Clinic Easy तैयार है।`,
     ``,
     `Login: ${p.appUrl}/login`,
     `• Doctor screen: मोबाइल ${p.doctorPhone}`,

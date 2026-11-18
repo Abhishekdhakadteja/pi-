@@ -1,14 +1,31 @@
-/** ClinicEase logo: a medical cross inside a soft gradient tile. */
+/**
+ * Clinic Easy logo mark: a neon stethoscope (the doctor's first tool) whose chest piece
+ * shows a live heartbeat, with glowing AI signal nodes along the tube, on a deep-space tile.
+ * Source: public/brand/clinic-easy-mark.svg (also src/app/icon.svg for the favicon).
+ */
 export function BrandMark({ size = 40 }: { size?: number }) {
   return (
-    <span
-      className="inline-flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 shadow-md shadow-teal-900/20 ring-1 ring-white/30"
-      style={{ width: size, height: size }}
+    // A plain <img> keeps the SVG's glow filters and gradients isolated and cached.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/brand/clinic-easy-mark.svg"
+      width={size}
+      height={size}
+      alt=""
       aria-hidden="true"
-    >
-      <svg viewBox="0 0 24 24" width={size * 0.6} height={size * 0.6} fill="white">
-        <path d="M9.5 3h5a1 1 0 0 1 1 1v4.5H20a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-4.5V20a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-4.5H4a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1h4.5V4a1 1 0 0 1 1-1z" />
-      </svg>
+      className="shrink-0 rounded-[23%] shadow-[0_4px_18px_rgba(34,184,245,0.35)]"
+    />
+  );
+}
+
+/** "CLINIC EASY" wordmark: futuristic Sora type, with EASY in the neon gradient. */
+export function BrandName({ className = "" }: { className?: string }) {
+  return (
+    <span className={`font-brand font-bold uppercase tracking-wide ${className}`}>
+      Clinic{" "}
+      <span className="bg-gradient-to-r from-[#22F5D0] via-[#22B8F5] to-[#A78BFA] bg-clip-text text-transparent">
+        Easy
+      </span>
     </span>
   );
 }

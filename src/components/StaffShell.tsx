@@ -5,6 +5,7 @@ import { LangSwitch } from "./LangSwitch";
 import { BrandMark } from "./BrandMark";
 import { NavLinks, type NavItem } from "./NavLinks";
 import type { DictKey } from "@/lib/i18n";
+import { SupportContact } from "./SupportContact";
 
 const NAV: Record<Staff["role"], { href: string; key: DictKey; icon: NavItem["icon"] }[]> = {
   attender: [
@@ -39,10 +40,10 @@ export async function StaffShell({
   children: React.ReactNode;
   denied?: boolean;
 }) {
-  const { t } = await getT();
+  const { t, lang } = await getT();
   return (
     <div className="mx-auto min-h-screen max-w-3xl px-4 pb-16">
-      <header className="no-print sticky top-0 z-10 -mx-4 mb-5 bg-gradient-to-r from-[#0b3b44] via-teal-800 to-emerald-700 px-4 pb-3 pt-3 text-white shadow-lg shadow-teal-950/20 sm:rounded-b-3xl">
+      <header className="no-print sticky top-0 z-10 -mx-4 mb-5 bg-gradient-to-r from-[#050b1a] via-[#0b2545] to-teal-700 px-4 pb-3 pt-3 text-white shadow-lg shadow-teal-950/20 sm:rounded-b-3xl">
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-3">
             <BrandMark size={40} />
@@ -64,6 +65,9 @@ export async function StaffShell({
       </header>
       {denied && <p className="error-box mb-4">{t("err_not_allowed")}</p>}
       {children}
+      <footer className="no-print mt-10">
+        <SupportContact lang={lang} variant="compact" tone="light" />
+      </footer>
     </div>
   );
 }
