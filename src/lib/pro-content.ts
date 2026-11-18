@@ -144,7 +144,7 @@ export type { ProWords };
 /** The paid services listed on the Pro card, in order. */
 export const PRO_FEATURES: Record<Lang, string[]> = {
   hi: [
-    "AI पेशेंट सारांश (Claude)",
+    "AI मैनेजर + पेशेंट सारांश (Claude)",
     "ऑटो SMS रिमाइंडर",
     "ऑटो WhatsApp",
     "AI वॉइस कॉलिंग",
@@ -157,7 +157,7 @@ export const PRO_FEATURES: Record<Lang, string[]> = {
     "ऑनलाइन फ़ीस",
   ],
   en: [
-    "AI patient summary (Claude)",
+    "AI Manager + patient summary (Claude)",
     "Auto SMS reminders",
     "Auto WhatsApp",
     "AI voice calling",
