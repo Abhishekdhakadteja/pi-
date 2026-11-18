@@ -7,6 +7,11 @@ import { AiBrief } from "@/components/os/AiBrief";
 import { IntegrationCard } from "@/components/os/IntegrationCard";
 import { LogoTile } from "@/components/os/LogoTile";
 import { StatusPill } from "@/components/os/StatusPill";
+import { getPlanState } from "@/lib/subscription";
+import { isProService } from "@/lib/plans";
+import { getProWords } from "@/lib/pro-content";
+import { ProBadge } from "@/components/ProBadge";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +22,8 @@ export default async function AiCenterPage() {
   const { lang } = await getT();
   const w = getOsWords(lang);
   const cw = cardWords(w);
+  const pw = getProWords(lang);
+  const plan = await getPlanState(staff.clinic_id);
   const env = process.env as Record<string, string | undefined>;
   const agents = INTEGRATIONS.filter((i) => i.kind === "free");
   const services = INTEGRATIONS.filter((i) => i.kind !== "free")
@@ -59,11 +66,39 @@ export default async function AiCenterPage() {
       </section>
 
       <section className="mt-8" data-testid="services">
-        <h2 className="text-xl font-bold">{w.hubTitle}</h2>
+        <h2 className="flex items-center gap-2 text-xl font-bold">
+          {w.hubTitle} <ProBadge label={plan.trial ? "TRIAL" : plan.tier === "pro_max" ? "MAX" : "PRO"} />
+        </h2>
         <p className="mb-3 text-sm text-slate-400">{w.hubSub}</p>
+        {!plan.pro && (
+          <Link
+            href="/pro"
+            className="pro-card-hero mb-4 flex items-center justify-between gap-3 rounded-2xl p-4"
+            data-testid="pro-upsell"
+          >
+            <span>
+              <span className="block text-lg font-bold">
+                <span className="pro-text">{pw.unlockTitle}</span>
+              </span>
+              <span className="block text-sm text-slate-300">{pw.unlockSub}</span>
+            </span>
+            <span className="btn-small shrink-0 bg-gradient-to-r from-amber-300 via-pink-400 to-violet-500 font-bold text-[#140a24]">
+              {pw.unlock} →
+            </span>
+          </Link>
+        )}
         <ul className="grid gap-3 sm:grid-cols-2">
           {services.map(({ i, s }) => (
-            <IntegrationCard key={i.id} item={i} status={s} w={cw} lang={lang} isAdmin={staff.role === "admin"} />
+            <IntegrationCard
+              key={i.id}
+              item={i}
+              status={s}
+              w={cw}
+              lang={lang}
+              isAdmin={staff.role === "admin"}
+              locked={!plan.pro && isProService(i.id)}
+              unlockLabel={pw.unlock}
+            />
           ))}
         </ul>
       </section>

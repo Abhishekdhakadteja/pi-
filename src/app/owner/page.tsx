@@ -5,7 +5,8 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { addDays, todayIST } from "@/lib/dates";
 import { logout } from "@/app/login/actions";
 import { BrandMark } from "@/components/BrandMark";
-import { NewClinicForm, ClinicPauseButton } from "./OwnerForms";
+import { NewClinicForm, ClinicPauseButton, ClinicPlanForm } from "./OwnerForms";
+import { planState, type ClinicPlanRow } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "Owner · Clinic Easy", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -20,15 +21,25 @@ type Row = {
   patients: number;
   visits30: number;
   lastVisit: string | null;
+  planLabel: string;
 };
 
 async function loadClinics(): Promise<Row[]> {
   const db = supabaseAdmin();
   const since = addDays(todayIST(), -30);
-  const [{ data: clinics }, { data: staff }] = await Promise.all([
+  const [{ data: clinics }, { data: staff }, { data: plans }] = await Promise.all([
     db.from("clinics").select("id, name, address, phone, created_at").order("created_at", { ascending: false }),
     db.from("users").select("clinic_id, name, role, phone, email, active"),
+    // Separate query: before the Pro SQL is run these columns do not exist and this just returns nothing.
+    db.from("clinics").select("id, plan, plan_until, pro_trial_ends_at, pro_trial_used"),
   ]);
+  const planOf = (id: string) => {
+    const row = (plans as (ClinicPlanRow & { id: string })[] | null)?.find((p) => p.id === id);
+    if (!row) return "Basic";
+    const s = planState(row);
+    const name = s.tier === "pro_max" ? "Pro Max" : s.tier === "pro" ? "Pro" : "Basic";
+    return s.pro ? `${name}${s.trial ? " (trial)" : ""} · ${s.daysLeft} दिन बाकी` : s.expired ? "Basic (Pro खत्म)" : name;
+  };
   return Promise.all(
     (clinics ?? []).map(async (c) => {
       const [patients, visits, last] = await Promise.all([
@@ -42,6 +53,7 @@ async function loadClinics(): Promise<Row[]> {
         patients: patients.count ?? 0,
         visits30: visits.count ?? 0,
         lastVisit: last.data?.[0]?.date ?? null,
+        planLabel: planOf(c.id),
       };
     }),
   );
@@ -123,6 +135,7 @@ export default async function OwnerPage() {
                   <div className="text-lg font-bold">{c.lastVisit ?? "—"}</div>आख़िरी visit
                 </div>
               </div>
+              <ClinicPlanForm clinicId={c.id} label={c.planLabel} />
               <ul className="mt-3 flex flex-col gap-1 text-sm">
                 {c.staff.map((s, i) => (
                   <li key={i} className={s.active ? "" : "line-through opacity-60"}>

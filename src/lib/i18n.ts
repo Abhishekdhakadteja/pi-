@@ -35,6 +35,7 @@ const en = {
   doctorView: "Doctor view",
   settings: "Settings",
   aiCenter: "AI Center",
+  proNav: "Pro",
   reports: "Reports",
   reminders: "Reminders",
 
@@ -328,6 +329,7 @@ const hi: Dict = {
   doctorView: "डॉक्टर व्यू",
   settings: "सेटिंग्स",
   aiCenter: "AI सेंटर",
+  proNav: "Pro",
   reports: "रिपोर्ट",
   reminders: "रिमाइंडर",
 
