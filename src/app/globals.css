@@ -2,6 +2,10 @@
 
 /* Clinic Easy: big, clear, light. Built for cheap Android phones. */
 /* Premium medical theme: deep teal + emerald, soft mint background, calm cards. */
+@theme inline {
+  --font-brand: var(--font-sora), system-ui, sans-serif;
+}
+
 :root {
   --bg: #f3f8f7;
   --fg: #0b1f2a;

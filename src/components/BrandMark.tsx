@@ -1,37 +1,31 @@
 /**
- * Clinic Easy logo mark: a white medical cross with a "done" tick, on a teal-to-emerald tile.
- * The same drawing lives in public/brand/clinic-easy-mark.svg and src/app/icon.svg.
+ * Clinic Easy logo mark: a neon stethoscope (the doctor's first tool) whose chest piece
+ * shows a live heartbeat, with glowing AI signal nodes along the tube, on a deep-space tile.
+ * Source: public/brand/clinic-easy-mark.svg (also src/app/icon.svg for the favicon).
  */
 export function BrandMark({ size = 40 }: { size?: number }) {
   return (
-    <svg
-      viewBox="0 0 512 512"
+    // A plain <img> keeps the SVG's glow filters and gradients isolated and cached.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/brand/clinic-easy-mark.svg"
       width={size}
       height={size}
-      className="shrink-0 drop-shadow-md"
+      alt=""
       aria-hidden="true"
-      focusable="false"
-    >
-      <defs>
-        <linearGradient id="clinic-easy-tile" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#14b8a6" />
-          <stop offset="1" stopColor="#047857" />
-        </linearGradient>
-      </defs>
-      <rect width="512" height="512" rx="120" fill="url(#clinic-easy-tile)" />
-      <rect width="510" height="510" x="1" y="1" rx="119" fill="none" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="2" />
-      <g fill="#ffffff">
-        <rect x="176" y="80" width="160" height="352" rx="44" />
-        <rect x="80" y="176" width="352" height="160" rx="44" />
-      </g>
-      <path
-        d="M198 258l40 40 78-80"
-        fill="none"
-        stroke="#0f766e"
-        strokeWidth="32"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+      className="shrink-0 rounded-[23%] shadow-[0_4px_18px_rgba(34,184,245,0.35)]"
+    />
+  );
+}
+
+/** "CLINIC EASY" wordmark: futuristic Sora type, with EASY in the neon gradient. */
+export function BrandName({ className = "" }: { className?: string }) {
+  return (
+    <span className={`font-brand font-bold uppercase tracking-wide ${className}`}>
+      Clinic{" "}
+      <span className="bg-gradient-to-r from-[#22F5D0] via-[#22B8F5] to-[#A78BFA] bg-clip-text text-transparent">
+        Easy
+      </span>
+    </span>
   );
 }

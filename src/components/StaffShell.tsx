@@ -42,7 +42,7 @@ export async function StaffShell({
   const { t } = await getT();
   return (
     <div className="mx-auto min-h-screen max-w-3xl px-4 pb-16">
-      <header className="no-print sticky top-0 z-10 -mx-4 mb-5 bg-gradient-to-r from-[#0b3b44] via-teal-800 to-emerald-700 px-4 pb-3 pt-3 text-white shadow-lg shadow-teal-950/20 sm:rounded-b-3xl">
+      <header className="no-print sticky top-0 z-10 -mx-4 mb-5 bg-gradient-to-r from-[#050b1a] via-[#0b2545] to-teal-700 px-4 pb-3 pt-3 text-white shadow-lg shadow-teal-950/20 sm:rounded-b-3xl">
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-3">
             <BrandMark size={40} />
