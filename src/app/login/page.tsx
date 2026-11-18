@@ -4,11 +4,12 @@ import { getStaff, ROLE_HOME } from "@/lib/staff";
 import { LangSwitch } from "@/components/LangSwitch";
 import { BrandMark, BrandName } from "@/components/BrandMark";
 import { LoginForm } from "./LoginForm";
+import { SupportContact } from "@/components/SupportContact";
 
 export default async function LoginPage() {
   const staff = await getStaff();
   if (staff) redirect(ROLE_HOME[staff.role]);
-  const { t } = await getT();
+  const { t, lang } = await getT();
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col">
       <section className="relative overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-[#050b1a] via-[#0b2545] to-teal-700 px-5 pb-16 pt-6 text-white shadow-xl shadow-teal-950/20">
@@ -35,6 +36,9 @@ export default async function LoginPage() {
           </svg>
           {t("secureNote")}
         </p>
+        <div className="mt-6">
+          <SupportContact lang={lang} variant="compact" tone="light" />
+        </div>
       </div>
     </main>
   );

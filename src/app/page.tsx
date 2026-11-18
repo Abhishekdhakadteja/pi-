@@ -4,6 +4,7 @@ import { getLanding } from "@/lib/landing-content";
 import { LangSwitch } from "@/components/LangSwitch";
 import { BrandMark, BrandName } from "@/components/BrandMark";
 import { LandingIcon } from "@/components/LandingIcon";
+import { SupportContact } from "@/components/SupportContact";
 
 // Public front page: the first thing a doctor sees. Dark, "AI clinic OS" look.
 // Pure server HTML + CSS animations (no client JS) so it stays fast on cheap phones.
@@ -166,6 +167,11 @@ export default async function Home() {
               {c.ctaLogin} →
             </Link>
           </div>
+        </section>
+
+        {/* support contact */}
+        <section className="pb-14">
+          <SupportContact lang={lang} />
         </section>
 
         <footer className="flex items-center justify-center gap-2 border-t border-white/10 py-8 text-sm text-slate-500">
