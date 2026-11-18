@@ -9,6 +9,8 @@ import { SupportContact } from "./SupportContact";
 import { ProBadge } from "./ProBadge";
 import { getPlanState } from "@/lib/subscription";
 import Link from "next/link";
+import { aiConfigured } from "@/lib/ai";
+import { AiManager } from "./os/AiManager";
 
 const NAV: Record<Staff["role"], { href: string; key: DictKey; icon: NavItem["icon"] }[]> = {
   attender: [
@@ -51,7 +53,7 @@ export async function StaffShell({
   const [{ t, lang }, plan] = await Promise.all([getT(), getPlanState(staff.clinic_id)]);
   return (
     <div className="os min-h-screen">
-      <div className="mx-auto min-h-screen max-w-3xl px-4 pb-16">
+      <div className="mx-auto min-h-screen max-w-3xl px-4 pb-28">
         <header className="no-print sticky top-0 z-20 -mx-4 mb-5 border-b border-cyan-400/15 bg-[#030712]/85 px-4 pb-2.5 pt-3 backdrop-blur-xl sm:rounded-b-3xl sm:border-x">
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-3">
@@ -91,6 +93,7 @@ export async function StaffShell({
           <p className="mt-4 text-center font-brand text-[11px] tracking-[0.25em] text-slate-500">CLINIC EASY · AI CLINIC OS</p>
         </footer>
       </div>
+      <AiManager role={staff.role} mode={!aiConfigured() ? "key" : plan.pro ? "on" : "pro"} />
     </div>
   );
 }
