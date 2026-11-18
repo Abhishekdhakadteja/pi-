@@ -67,7 +67,7 @@ export default async function TodayPage() {
         {rows.length === 0 && <li className="card text-center text-lg text-slate-500">{t("noPatientsToday")}</li>}
         {rows.map((r) => (
           <li key={r.id} className="card flex flex-wrap items-center gap-3 p-3" data-testid={`row-${r.token_number}`}>
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-600 text-2xl font-black text-white shadow-md shadow-teal-900/20">{r.token_number}</span>
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#14d8b8] via-[#22B8F5] to-[#7c5cf6] text-2xl font-black text-[#020617] shadow-[0_0_20px_-4px_rgba(34,184,245,0.7)]">{r.token_number}</span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-lg font-semibold">{r.patient?.name}</span>
               <span className="text-sm text-slate-500">
