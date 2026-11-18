@@ -5,6 +5,7 @@ import { useT } from "@/components/LangProvider";
 import { callNext, completeAndNext, saveCourse, saveVisit } from "./actions";
 import { formatDate } from "@/lib/dates";
 import type { ErrorCode } from "@/lib/i18n";
+import { VoiceButton } from "@/components/os/VoiceButton";
 
 export function VisitForm({ appointmentId, notes, diagnosis }: { appointmentId: string; notes: string; diagnosis: string }) {
   const { t } = useT();
@@ -22,7 +23,10 @@ export function VisitForm({ appointmentId, notes, diagnosis }: { appointmentId: 
         });
       }}
     >
-      <label className="label" htmlFor="notes">{t("todaysNotes")}</label>
+      <div className="flex items-center justify-between gap-2">
+        <label className="label mb-0" htmlFor="notes">{t("todaysNotes")}</label>
+        <VoiceButton target="notes" />
+      </div>
       <textarea id="notes" name="notes" className="input min-h-32 py-3 text-lg" defaultValue={notes} maxLength={8000} />
       <label className="label" htmlFor="diagnosis">{t("diagnosis")}</label>
       <input id="diagnosis" name="diagnosis" className="input" defaultValue={diagnosis} maxLength={1000} />

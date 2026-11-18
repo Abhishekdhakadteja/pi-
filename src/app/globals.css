@@ -131,3 +131,131 @@ body {
   .landing-orb::before, .landing-ecg, .landing-dot { animation: none; }
   .landing-ecg { stroke-dashoffset: 0; }
 }
+
+/* ---------- Inside the app: dark "AI Clinic OS" theme ----------
+   Every staff screen sits inside <div class="os">. Instead of rewriting each page, the light
+   colours used by the pages are re-mapped here to the neon, deep-space palette of the logo
+   and front page. Patient pages (booking, queue) and print pages stay light. */
+.os {
+  --os-bg: #030712;
+  --os-panel: #0a1428;
+  --os-panel-2: #0f1d38;
+  --os-line: rgb(56 189 248 / 0.16);
+  --os-text: #e6eefc;
+  --os-dim: #9fb0d0;
+  --os-cyan: #22b8f5;
+  --os-mint: #22f5d0;
+  --os-violet: #a78bfa;
+  color: var(--os-text);
+  background:
+    radial-gradient(900px 420px at 110% -5%, rgb(139 92 246 / 0.16), transparent 60%),
+    radial-gradient(800px 400px at -10% 0%, rgb(34 184 245 / 0.14), transparent 55%),
+    var(--os-bg);
+  background-attachment: fixed;
+  color-scheme: dark;
+}
+.os h1, .os h2 { color: #fff; }
+.os .card {
+  background: linear-gradient(180deg, rgb(15 29 56 / 0.92), rgb(10 20 40 / 0.92));
+  border: 1px solid var(--os-line);
+  box-shadow: 0 10px 40px -18px rgb(34 184 245 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --tw-ring-color: transparent;
+}
+.os .input {
+  background: #07101f;
+  border-color: rgb(56 189 248 / 0.25);
+  color: var(--os-text);
+  box-shadow: inset 0 1px 0 rgb(0 0 0 / 0.4);
+}
+.os .input:focus { border-color: var(--os-cyan); box-shadow: 0 0 0 4px rgb(34 184 245 / 0.18); }
+.os .input::placeholder { color: #5f7194; }
+.os .label { color: #b8c6e3; }
+.os .btn-primary {
+  background-image: linear-gradient(90deg, #14d8b8, #22b8f5 55%, #7c5cf6);
+  color: #020617;
+  box-shadow: 0 0 32px -8px rgb(34 184 245 / 0.7);
+}
+.os .btn-primary:hover { filter: brightness(1.08); }
+.os .btn-secondary {
+  background: rgb(34 184 245 / 0.08);
+  border-color: rgb(34 184 245 / 0.45);
+  color: #bfe9ff;
+}
+.os .btn-secondary:hover { background: rgb(34 184 245 / 0.16); }
+.os .chip { background: #0b1730; border-color: rgb(56 189 248 / 0.25); color: #c9d6ef; }
+.os .chip-on { background: linear-gradient(90deg, #14d8b8, #22b8f5); border-color: transparent; color: #020617; }
+.os .error-box { background: rgb(239 68 68 / 0.12); color: #fecaca; --tw-ring-color: rgb(239 68 68 / 0.35); }
+.os .ok-box { background: rgb(16 185 129 / 0.12); color: #a7f3d0; --tw-ring-color: rgb(16 185 129 / 0.35); }
+.os select option { background: #0a1428; color: #e6eefc; }
+
+/* light surfaces -> dark glass */
+.os .bg-white { background-color: var(--os-panel); }
+.os .bg-slate-50 { background-color: rgb(148 163 184 / 0.07); }
+.os .bg-slate-100 { background-color: rgb(148 163 184 / 0.12); }
+.os .bg-teal-50, .os .bg-emerald-50, .os .bg-green-50 { background-color: rgb(20 216 184 / 0.1); }
+.os .bg-green-100 { background-color: rgb(34 197 94 / 0.16); }
+.os .bg-amber-50 { background-color: rgb(245 158 11 / 0.1); }
+.os .bg-amber-100 { background-color: rgb(245 158 11 / 0.16); }
+.os .bg-red-50 { background-color: rgb(239 68 68 / 0.1); }
+.os .bg-red-100, .os .bg-rose-100 { background-color: rgb(239 68 68 / 0.16); }
+.os .bg-blue-100 { background-color: rgb(34 184 245 / 0.16); }
+.os .from-emerald-50, .os .from-teal-50 { --tw-gradient-from: rgb(20 216 184 / 0.12); }
+.os .from-rose-50 { --tw-gradient-from: rgb(244 63 94 / 0.12); }
+.os .to-white { --tw-gradient-to: rgb(10 20 40 / 0); }
+
+/* dark text -> light text */
+.os .text-slate-900, .os .text-slate-800 { color: #f1f5ff; }
+.os .text-slate-700 { color: #cdd8ee; }
+.os .text-slate-600 { color: #aebcd8; }
+.os .text-slate-500 { color: #8fa1c4; }
+.os .text-slate-400 { color: #6f82a8; }
+.os .text-teal-700, .os .text-teal-800, .os .text-teal-900 { color: #5eead4; }
+.os .text-green-700, .os .text-green-800, .os .text-emerald-700 { color: #4ade80; }
+.os .text-red-700, .os .text-red-800, .os .text-red-900, .os .text-rose-700 { color: #fca5a5; }
+.os .text-amber-600, .os .text-amber-700 { color: #fbbf24; }
+.os .text-amber-800, .os .text-amber-900, .os .text-amber-950 { color: #fde68a; }
+.os .text-blue-700, .os .text-blue-800 { color: #7dd3fc; }
+.os .text-violet-600 { color: #c4b5fd; }
+
+/* borders and rings */
+.os .border-slate-100, .os .border-slate-200, .os .border-slate-300 { border-color: rgb(56 189 248 / 0.18); }
+.os .border-teal-300, .os .border-teal-700 { border-color: rgb(34 245 208 / 0.45); }
+.os .border-red-300 { border-color: rgb(239 68 68 / 0.4); }
+.os .ring-slate-200, .os .ring-slate-200\/80 { --tw-ring-color: rgb(56 189 248 / 0.18); }
+.os .ring-amber-200 { --tw-ring-color: rgb(245 158 11 / 0.35); }
+.os .ring-green-200, .os .ring-emerald-200 { --tw-ring-color: rgb(16 185 129 / 0.35); }
+
+/* AI OS pieces */
+.os-gradient-text {
+  background: linear-gradient(90deg, #22f5d0, #22b8f5 50%, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.os-grid {
+  background-image:
+    linear-gradient(rgb(34 184 245 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(34 184 245 / 0.07) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: linear-gradient(180deg, #000, transparent 85%);
+}
+.os-live-dot { animation: landing-ping 1.8s ease-out infinite; }
+.os-scan { position: relative; overflow: hidden; }
+.os-scan::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgb(34 184 245 / 0.10) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: os-scan 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes os-scan { 0%, 30% { transform: translateX(-100%); } 70%, 100% { transform: translateX(100%); } }
+.os-mic-on { animation: os-mic 1.2s ease-in-out infinite; }
+@keyframes os-mic { 50% { box-shadow: 0 0 0 8px rgb(244 63 94 / 0); } 0% { box-shadow: 0 0 0 0 rgb(244 63 94 / 0.6); } }
+@media (prefers-reduced-motion: reduce) {
+  .os-live-dot, .os-scan::after, .os-mic-on { animation: none; }
+}
+@media print {
+  .os { background: white; color: black; }
+}

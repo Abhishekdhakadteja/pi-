@@ -33,19 +33,74 @@ export class LogSender implements MessageSender {
 }
 
 /**
- * MSG91 SMS — not connected yet. Fill in when you have an MSG91 account
- * (needs DLT-approved templates in India). Keep MESSAGING_PROVIDER=log until then.
+ * MSG91 SMS (Flow API). Ready to use: set MSG91_AUTH_KEY, MSG91_TEMPLATE_ID and
+ * MESSAGING_PROVIDER=msg91 in Netlify. The DLT-approved template must have one variable
+ * named "message" (##message##); the whole reminder text goes into it.
  */
 export class Msg91Sender implements MessageSender {
-  async send(): Promise<SendResult> {
-    return { status: "failed", error: "MSG91 is not connected yet" };
+  constructor(
+    private authKey = process.env.MSG91_AUTH_KEY ?? "",
+    private templateId = process.env.MSG91_TEMPLATE_ID ?? "",
+    private fetcher: typeof fetch = fetch,
+  ) {}
+  async send(msg: OutgoingMessage): Promise<SendResult> {
+    if (!this.authKey || !this.templateId) return { status: "failed", error: "MSG91 is not connected yet" };
+    try {
+      const res = await this.fetcher("https://control.msg91.com/api/v5/flow", {
+        method: "POST",
+        headers: { authkey: this.authKey, "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify({
+          template_id: this.templateId,
+          short_url: "0",
+          recipients: [{ mobiles: `91${msg.to}`, message: msg.body.slice(0, 900) }],
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { type?: string; message?: string };
+      if (!res.ok || data.type === "error") return { status: "failed", error: `MSG91: ${data.message ?? res.status}` };
+      return { status: "sent", providerRef: data.message };
+    } catch (e) {
+      return { status: "failed", error: `MSG91: ${e instanceof Error ? e.message : "network"}` };
+    }
   }
 }
 
-/** WhatsApp Business (e.g. via Meta Cloud API or a BSP) — not connected yet. */
+/**
+ * WhatsApp Business (Meta Cloud API). Ready to use: set WHATSAPP_TOKEN,
+ * WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_TEMPLATE and MESSAGING_PROVIDER=whatsapp.
+ * Business-started chats must use an approved template; ours has one body variable {{1}}.
+ */
 export class WhatsAppSender implements MessageSender {
-  async send(): Promise<SendResult> {
-    return { status: "failed", error: "WhatsApp is not connected yet" };
+  constructor(
+    private token = process.env.WHATSAPP_TOKEN ?? "",
+    private phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID ?? "",
+    private template = process.env.WHATSAPP_TEMPLATE ?? "",
+    private language = process.env.WHATSAPP_TEMPLATE_LANG ?? "hi",
+    private fetcher: typeof fetch = fetch,
+  ) {}
+  async send(msg: OutgoingMessage): Promise<SendResult> {
+    if (!this.token || !this.phoneNumberId || !this.template)
+      return { status: "failed", error: "WhatsApp is not connected yet" };
+    try {
+      const res = await this.fetcher(`https://graph.facebook.com/v21.0/${this.phoneNumberId}/messages`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${this.token}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: `91${msg.to}`,
+          type: "template",
+          template: {
+            name: this.template,
+            language: { code: this.language },
+            components: [{ type: "body", parameters: [{ type: "text", text: msg.body.replace(/\s*\n+\s*/g, " ").slice(0, 1000) }] }],
+          },
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { messages?: { id: string }[]; error?: { message?: string } };
+      if (!res.ok || !data.messages?.[0]) return { status: "failed", error: `WhatsApp: ${data.error?.message ?? res.status}` };
+      return { status: "sent", providerRef: data.messages[0].id };
+    } catch (e) {
+      return { status: "failed", error: `WhatsApp: ${e instanceof Error ? e.message : "network"}` };
+    }
   }
 }
 

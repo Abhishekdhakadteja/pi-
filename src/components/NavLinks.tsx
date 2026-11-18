@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 export type NavItem = { href: string; label: string; icon: keyof typeof ICONS };
 
 const ICONS = {
+  ai: "M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2zM19 3v4M21 5h-4",
   desk: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6",
   list: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
   doctor: "M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4M20 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4z",
@@ -31,7 +32,9 @@ export function NavLinks({ items }: { items: NavItem[] }) {
             href={n.href}
             aria-current={on ? "page" : undefined}
             className={`btn-small min-h-10 shrink-0 gap-1.5 px-3 ${
-              on ? "bg-white text-teal-900 shadow-md" : "bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/20"
+              on
+                ? "bg-gradient-to-r from-[#14d8b8] via-[#22B8F5] to-[#7c5cf6] text-[#020617] shadow-[0_0_24px_-6px_rgba(34,184,245,0.8)]"
+                : "bg-white/[0.04] text-slate-200 ring-1 ring-white/10 hover:bg-white/10"
             }`}
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

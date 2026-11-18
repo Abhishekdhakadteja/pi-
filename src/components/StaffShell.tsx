@@ -9,18 +9,21 @@ import { SupportContact } from "./SupportContact";
 
 const NAV: Record<Staff["role"], { href: string; key: DictKey; icon: NavItem["icon"] }[]> = {
   attender: [
+    { href: "/ai", key: "aiCenter", icon: "ai" },
     { href: "/desk", key: "attenderDesk", icon: "desk" },
     { href: "/today", key: "todaysList", icon: "list" },
     { href: "/messages", key: "messages", icon: "messages" },
   ],
   doctor: [
     { href: "/doctor", key: "doctorView", icon: "doctor" },
+    { href: "/ai", key: "aiCenter", icon: "ai" },
     { href: "/today", key: "todaysList", icon: "list" },
     { href: "/money", key: "money", icon: "money" },
     { href: "/messages", key: "messages", icon: "messages" },
     { href: "/reports", key: "reports", icon: "reports" },
   ],
   admin: [
+    { href: "/ai", key: "aiCenter", icon: "ai" },
     { href: "/admin", key: "settings", icon: "settings" },
     { href: "/desk", key: "attenderDesk", icon: "desk" },
     { href: "/today", key: "todaysList", icon: "list" },
@@ -42,32 +45,41 @@ export async function StaffShell({
 }) {
   const { t, lang } = await getT();
   return (
-    <div className="mx-auto min-h-screen max-w-3xl px-4 pb-16">
-      <header className="no-print sticky top-0 z-10 -mx-4 mb-5 bg-gradient-to-r from-[#050b1a] via-[#0b2545] to-teal-700 px-4 pb-3 pt-3 text-white shadow-lg shadow-teal-950/20 sm:rounded-b-3xl">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-3">
-            <BrandMark size={40} />
-            <div className="min-w-0">
-              <div className="truncate text-lg font-bold leading-tight">{staff.clinic.name}</div>
-              <div className="truncate text-sm text-teal-100/90">
-                {staff.name} · {t(`role_${staff.role}` as DictKey)}
+    <div className="os min-h-screen">
+      <div className="mx-auto min-h-screen max-w-3xl px-4 pb-16">
+        <header className="no-print sticky top-0 z-20 -mx-4 mb-5 border-b border-cyan-400/15 bg-[#030712]/85 px-4 pb-2.5 pt-3 backdrop-blur-xl sm:rounded-b-3xl sm:border-x">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-3">
+              <BrandMark size={40} />
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-lg font-bold leading-tight text-white">{staff.clinic.name}</span>
+                  <span className="hidden shrink-0 items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 font-brand text-[10px] font-bold tracking-[0.2em] text-cyan-200 sm:inline-flex">
+                    <span className="os-live-dot h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    AI OS
+                  </span>
+                </div>
+                <div className="truncate text-sm text-slate-400">
+                  {staff.name} · {t(`role_${staff.role}` as DictKey)}
+                </div>
               </div>
             </div>
+            <div className="flex shrink-0 items-center gap-2 [&_button]:border-white/20 [&_button]:bg-white/5 [&_button]:text-white">
+              <LangSwitch />
+              <form action={logout}>
+                <button className="btn-small bg-white/5 text-white ring-1 ring-white/20">{t("logout")}</button>
+              </form>
+            </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2 [&_button]:border-white/40 [&_button]:bg-white/10 [&_button]:text-white">
-            <LangSwitch />
-            <form action={logout}>
-              <button className="btn-small bg-white/10 text-white ring-1 ring-white/30">{t("logout")}</button>
-            </form>
-          </div>
-        </div>
-        <NavLinks items={NAV[staff.role].map((n) => ({ href: n.href, label: t(n.key), icon: n.icon }))} />
-      </header>
-      {denied && <p className="error-box mb-4">{t("err_not_allowed")}</p>}
-      {children}
-      <footer className="no-print mt-10">
-        <SupportContact lang={lang} variant="compact" tone="light" />
-      </footer>
+          <NavLinks items={NAV[staff.role].map((n) => ({ href: n.href, label: t(n.key), icon: n.icon }))} />
+        </header>
+        {denied && <p className="error-box mb-4">{t("err_not_allowed")}</p>}
+        {children}
+        <footer className="no-print mt-10">
+          <SupportContact lang={lang} variant="compact" tone="dark" />
+          <p className="mt-4 text-center font-brand text-[11px] tracking-[0.25em] text-slate-500">CLINIC EASY · AI CLINIC OS</p>
+        </footer>
+      </div>
     </div>
   );
 }

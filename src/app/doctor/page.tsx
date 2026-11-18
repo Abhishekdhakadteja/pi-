@@ -8,6 +8,11 @@ import { Counters, countStatuses } from "@/components/Counters";
 import { LiveRefresh } from "@/components/LiveRefresh";
 import { CallNextButton, CompleteButton, CourseForm, VisitForm } from "./DoctorForms";
 import { RxForm } from "./RxForm";
+import { AiBrief } from "@/components/os/AiBrief";
+import { PatientBrief } from "@/components/os/PatientBrief";
+import { buildPatientBrief } from "@/lib/ai-brief";
+import { getOsWords } from "@/lib/os-content";
+import { aiConfigured } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
 
@@ -37,9 +42,11 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
   let current: { doctor_notes: string | null; diagnosis: string | null } | null = null;
   let course: { days: number; end_date: string; next_visit_date: string } | null = null;
   let rx: { medicine: string; dose: string | null; timing: string | null; days: number; note: string | null }[] = [];
+  let briefLines: string[] = [];
+  const w = getOsWords(lang);
 
   if (inRoom) {
-    const [{ data: p }, { data: visits }, { data: lastAppt }, { data: crs }, { data: rxRows }] = await Promise.all([
+    const [{ data: p }, { data: visits }, { data: lastAppt }, { data: crs }, { data: rxRows }, { data: oldRx }, { data: oldCourse }] = await Promise.all([
       supabase.from("patients").select("id, name, age, gender, address").eq("id", inRoom.patient_id).single(),
       supabase
         .from("visits")
@@ -57,6 +64,20 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
         .limit(1),
       supabase.from("treatment_courses").select("days, end_date, next_visit_date").eq("appointment_id", inRoom.id).maybeSingle(),
       supabase.from("prescription_items").select("medicine, dose, timing, days, note").eq("appointment_id", inRoom.id).order("position"),
+      supabase
+        .from("prescription_items")
+        .select("medicine, appointment_id")
+        .eq("patient_id", inRoom.patient_id)
+        .neq("appointment_id", inRoom.id)
+        .order("created_at", { ascending: false })
+        .limit(10),
+      supabase
+        .from("treatment_courses")
+        .select("end_date")
+        .eq("patient_id", inRoom.patient_id)
+        .neq("appointment_id", inRoom.id)
+        .order("end_date", { ascending: false })
+        .limit(1),
     ]);
     rx = rxRows ?? [];
     patient = p;
@@ -73,6 +94,17 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
       .filter((v) => v.appointment_id !== inRoom.id)
       .map((v) => ({ date: v.appointment?.date ?? v.created_at.slice(0, 10), doctor_notes: v.doctor_notes, diagnosis: v.diagnosis }));
     course = crs;
+    const lastRxAppt = oldRx?.[0]?.appointment_id;
+    briefLines = buildPatientBrief(
+      {
+        pastVisits: past,
+        lastRx: (oldRx ?? []).filter((r) => r.appointment_id === lastRxAppt).map((r) => r.medicine),
+        lastCourseEnd: oldCourse?.[0]?.end_date ?? null,
+        complaint: inRoom.complaint,
+      },
+      w,
+      (d) => formatDate(d, lang),
+    );
     await audit(staff, "view", "patients", inRoom.patient_id, { via: "doctor_view" });
     await audit(staff, "view", "visits", inRoom.patient_id, { count: vs.length });
   }
@@ -83,6 +115,7 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
         <h1 className="text-2xl font-bold">{t("doctorView")}</h1>
         <LiveRefresh clinicId={staff.clinic_id} date={today} />
       </div>
+      <AiBrief staff={staff} lang={lang} compact hideStats />
       <Counters {...c} t={t} />
 
       {!inRoom || !patient ? (
@@ -111,6 +144,13 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
               </div>
             )}
           </section>
+
+          <PatientBrief
+            appointmentId={inRoom.id}
+            lines={briefLines}
+            aiOn={aiConfigured()}
+            words={{ pbTitle: w.pbTitle, pbAuto: w.pbAuto, pbAi: w.pbAi, pbAiWorking: w.pbAiWorking, pbAiFailed: w.pbAiFailed, pbAiOff: w.pbAiOff, pbAiNote: w.pbAiNote, soon: w.soon }}
+          />
 
           <section className="card">
             <h2 className="mb-2 text-xl font-bold">{t("pastVisits")}</h2>

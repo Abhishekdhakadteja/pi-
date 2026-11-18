@@ -144,3 +144,54 @@ export async function saveRx(
   });
   return { ...course, wa: waLink(p?.phone ?? "", text) };
 }
+
+/**
+ * Claude AI summary of the patient in the room. Sends only clinical facts
+ * (age, gender, complaint, past diagnoses, notes, medicines), never name, phone or address.
+ */
+export async function aiPatientSummary(
+  appointmentId: string,
+): Promise<{ ok: true; lines: string[] } | { ok: false; error: "ai_off" | "ai_failed" | ErrorCode }> {
+  const staff = await assertRole(["doctor"]);
+  const { aiConfigured, summarizePatient } = await import("@/lib/ai");
+  if (!aiConfigured()) return { ok: false, error: "ai_off" };
+  const appt = await loadAppointment(appointmentId, staff.clinic_id);
+  if (!appt) return { ok: false, error: "err_generic" };
+  const supabase = await supabaseServer();
+  const [{ data: p }, { data: a }, { data: visits }, { data: meds }] = await Promise.all([
+    supabase.from("patients").select("age, gender").eq("id", appt.patient_id).single(),
+    supabase.from("appointments").select("complaint").eq("id", appt.id).single(),
+    supabase
+      .from("visits")
+      .select("diagnosis, doctor_notes, created_at")
+      .eq("patient_id", appt.patient_id)
+      .order("created_at", { ascending: false })
+      .limit(15),
+    supabase
+      .from("prescription_items")
+      .select("medicine, dose, days, created_at")
+      .eq("patient_id", appt.patient_id)
+      .order("created_at", { ascending: false })
+      .limit(30),
+  ]);
+  const { lang } = await (await import("@/lib/lang-server")).getT();
+  try {
+    const lines = await summarizePatient(
+      {
+        age: p?.age ?? null,
+        gender: p?.gender ?? null,
+        complaint: a?.complaint ?? null,
+        visits: (visits ?? []).map((v) => ({ date: v.created_at.slice(0, 10), diagnosis: v.diagnosis, notes: v.doctor_notes })),
+        medicines: (meds ?? []).map((m) => ({ date: m.created_at.slice(0, 10), medicine: m.medicine, dose: m.dose, days: m.days })),
+      },
+      lang,
+    );
+    if (!lines) return { ok: false, error: "ai_off" };
+    const { audit } = await import("@/lib/audit");
+    await audit(staff, "ai_summary", "patients", appt.patient_id, { lines: lines.length });
+    return { ok: true, lines };
+  } catch (e) {
+    console.error("[ai] summary failed", e instanceof Error ? e.message : e);
+    return { ok: false, error: "ai_failed" };
+  }
+}

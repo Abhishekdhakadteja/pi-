@@ -34,6 +34,7 @@ const en = {
   todaysList: "Today's list",
   doctorView: "Doctor view",
   settings: "Settings",
+  aiCenter: "AI Center",
   reports: "Reports",
   reminders: "Reminders",
 
@@ -326,6 +327,7 @@ const hi: Dict = {
   todaysList: "आज की लिस्ट",
   doctorView: "डॉक्टर व्यू",
   settings: "सेटिंग्स",
+  aiCenter: "AI सेंटर",
   reports: "रिपोर्ट",
   reminders: "रिमाइंडर",
 
