@@ -13,6 +13,8 @@ import { PatientBrief } from "@/components/os/PatientBrief";
 import { buildPatientBrief } from "@/lib/ai-brief";
 import { getOsWords } from "@/lib/os-content";
 import { aiConfigured } from "@/lib/ai";
+import { getPlanState } from "@/lib/subscription";
+import { getProWords } from "@/lib/pro-content";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +24,7 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
   const sp = await searchParams;
   const today = todayIST();
   const supabase = await supabaseServer();
+  const plan = await getPlanState(staff.clinic_id);
 
   const { data: todays } = await supabase
     .from("appointments")
@@ -148,7 +151,8 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
           <PatientBrief
             appointmentId={inRoom.id}
             lines={briefLines}
-            aiOn={aiConfigured()}
+            aiOn={aiConfigured() && plan.pro}
+            proLocked={!plan.pro ? getProWords(lang).aiProOnly : null}
             words={{ pbTitle: w.pbTitle, pbAuto: w.pbAuto, pbAi: w.pbAi, pbAiWorking: w.pbAiWorking, pbAiFailed: w.pbAiFailed, pbAiOff: w.pbAiOff, pbAiNote: w.pbAiNote, soon: w.soon }}
           />
 

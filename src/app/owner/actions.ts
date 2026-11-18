@@ -172,3 +172,60 @@ export async function setClinicActive(clinicId: string, active: boolean): Promis
   revalidatePath("/owner");
   return { ok: true };
 }
+
+/**
+ * Owner switches Clinic Easy Pro on by hand (doctor paid by UPI / cash) or off (months = 0).
+ * Records a "manual" payment so the clinic sees it in its payment list.
+ */
+export async function setClinicPlan(
+  clinicId: string,
+  plan: "pro" | "pro_max",
+  months: number,
+  amountRupees: number,
+): Promise<{ ok: boolean; error?: string; until?: string }> {
+  const owner = await assertOwner();
+  const { extendPlan, isPaidPlan } = await import("@/lib/plans");
+  const { getClinicPlanRow } = await import("@/lib/subscription");
+  if (!isPaidPlan(plan) || !Number.isInteger(months) || months < 0 || months > 36) return { ok: false, error: "गलत प्लान या महीने।" };
+  const amount = Math.max(0, Math.round(Number(amountRupees) || 0));
+  const db = supabaseAdmin();
+  const row = await getClinicPlanRow(clinicId);
+  if (!row) return { ok: false, error: "पहले Pro वाला SQL (database update) चलाएँ।" };
+
+  let until: string;
+  if (months === 0) {
+    until = new Date().toISOString();
+  } else {
+    let end = new Date();
+    let base = row;
+    for (let i = 0; i < months; i++) {
+      end = extendPlan(base, plan, "month");
+      base = { plan, plan_until: end.toISOString() };
+    }
+    until = end.toISOString();
+  }
+  const { error } = await db.from("clinics").update({ plan: months === 0 ? "basic" : plan, plan_until: until }).eq("id", clinicId);
+  if (error) return { ok: false, error: "बदलाव नहीं हो पाया।" };
+  if (months > 0) {
+    await db.from("subscription_payments").insert({
+      clinic_id: clinicId,
+      plan,
+      cycle: months >= 12 ? "year" : "month",
+      amount_paise: amount * 100,
+      provider: "manual",
+      status: "paid",
+      period_end: until,
+      note: `${months} month(s) by owner ${owner.email}`,
+    });
+  }
+  await db.from("audit_log").insert({
+    clinic_id: clinicId,
+    user_id: owner.id,
+    action: months === 0 ? "owner_pro_off" : "owner_pro_on",
+    record_table: "clinics",
+    record_id: clinicId,
+    details: { plan, months, amount, until, by: owner.email },
+  });
+  revalidatePath("/owner");
+  return { ok: true, until };
+}

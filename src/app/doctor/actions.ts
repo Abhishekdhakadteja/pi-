@@ -155,6 +155,8 @@ export async function aiPatientSummary(
   const staff = await assertRole(["doctor"]);
   const { aiConfigured, summarizePatient } = await import("@/lib/ai");
   if (!aiConfigured()) return { ok: false, error: "ai_off" };
+  const { getPlanState } = await import("@/lib/subscription");
+  if (!(await getPlanState(staff.clinic_id)).pro) return { ok: false, error: "ai_off" };
   const appt = await loadAppointment(appointmentId, staff.clinic_id);
   if (!appt) return { ok: false, error: "err_generic" };
   const supabase = await supabaseServer();

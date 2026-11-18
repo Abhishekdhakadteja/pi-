@@ -1,7 +1,8 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { serverEnv } from "@/lib/server-env";
-import { getSender } from "@/lib/messaging";
+import { getSender, ManualWhatsAppSender } from "@/lib/messaging";
+import { proClinicIds } from "@/lib/subscription";
 import { randomBytes } from "node:crypto";
 import { addDays, todayIST } from "@/lib/dates";
 import { fillTemplate } from "@/lib/reminder-text";
@@ -43,6 +44,13 @@ export async function runReminderJob(now: Date = new Date(), clinicId?: string):
   const db = supabaseAdmin();
   const today = todayIST(now);
   const summary: JobSummary = { first: 0, followUp: 0, alreadyBooked: 0, skippedNoConsent: 0, failed: 0 };
+  // Automatic SMS / WhatsApp are a Clinic Easy Pro service. Basic clinics get the free
+  // one-tap WhatsApp message on the Messages page instead.
+  const proCache = new Map<string, boolean>();
+  const isPro = async (id: string) => {
+    if (!proCache.has(id)) proCache.set(id, (await proClinicIds([id], now)).has(id));
+    return proCache.get(id)!;
+  };
   const select =
     "id, clinic_id, patient_id, end_date, reminder_status, appointment:appointments(doctor_id), " +
     "patient:patients(id, name, phone, language, consent_given, opted_out), " +
@@ -70,7 +78,7 @@ export async function runReminderJob(now: Date = new Date(), clinicId?: string):
       summary.alreadyBooked++;
       continue;
     }
-    const ok = await sendReminder(c, "first");
+    const ok = await sendReminder(c, "first", await isPro(c.clinic_id));
     if (ok === "sent") {
       await db.from("treatment_courses").update({ reminder_status: "reminded" }).eq("id", c.id);
       summary.first++;
@@ -110,7 +118,7 @@ export async function runReminderJob(now: Date = new Date(), clinicId?: string):
       summary.skippedNoConsent++;
       continue;
     }
-    const ok = await sendReminder(c, "follow_up");
+    const ok = await sendReminder(c, "follow_up", await isPro(c.clinic_id));
     // After the follow-up we stop, whatever happens.
     await db.from("treatment_courses").update({ reminder_status: "followed_up" }).eq("id", c.id);
     if (ok === "sent") summary.followUp++;
@@ -140,7 +148,7 @@ async function doctorName(clinicId: string, doctorId: string | null) {
   return data?.[0]?.name ?? "";
 }
 
-async function sendReminder(c: CourseRow, kind: "first" | "follow_up"): Promise<"sent" | "duplicate" | "failed"> {
+async function sendReminder(c: CourseRow, kind: "first" | "follow_up", pro: boolean): Promise<"sent" | "duplicate" | "failed"> {
   const db = supabaseAdmin();
   const p = c.patient!;
   const clinic = c.clinic!;
@@ -160,7 +168,8 @@ async function sendReminder(c: CourseRow, kind: "first" | "follow_up"): Promise<
       : p.language === "en" ? clinic.followup_template_en : clinic.followup_template_hi;
   const body = fillTemplate(template, { patient: p.name, doctor: await doctorName(c.clinic_id, c.appointment?.doctor_id ?? null), clinic: clinic.name, link });
 
-  const res = await getSender().send({ to: p.phone, channel: clinic.reminder_channel, body, purpose: "reminder" });
+  const sender = pro ? getSender() : new ManualWhatsAppSender();
+  const res = await sender.send({ to: p.phone, channel: clinic.reminder_channel, body, purpose: "reminder" });
   // "manual" = waiting on the Messages page for one tap on WhatsApp; sent_at is set when staff send it.
   await db
     .from("reminders")

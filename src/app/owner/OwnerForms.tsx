@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState, useTransition } from "react";
 import { PasswordInput } from "@/components/PasswordInput";
-import { createClinic, setClinicActive } from "./actions";
+import { createClinic, setClinicActive, setClinicPlan } from "./actions";
 
 export function NewClinicForm() {
   const ref = useRef<HTMLFormElement>(null);
@@ -116,6 +116,48 @@ export function ClinicPauseButton({ clinicId, active }: { clinicId: string; acti
         {pending ? "…" : active ? "⏸ बंद करें" : "▶ चालू करें"}
       </button>
       {error && <span className="text-xs text-rose-700">{error}</span>}
+    </div>
+  );
+}
+
+/** Owner: switch Clinic Easy Pro on for N months after a UPI/cash payment, or off. */
+export function ClinicPlanForm({ clinicId, label }: { clinicId: string; label: string }) {
+  const [pending, start] = useTransition();
+  const [msg, setMsg] = useState<string | null>(null);
+  const [plan, setPlan] = useState<"pro" | "pro_max">("pro");
+  const [months, setMonths] = useState(1);
+  const [amount, setAmount] = useState(2999);
+  return (
+    <div className="mt-3 rounded-xl bg-amber-50 p-3 ring-1 ring-amber-200">
+      <div className="mb-2 text-sm font-semibold text-amber-900">Pro: {label}</div>
+      <div className="flex flex-wrap items-end gap-2 text-sm">
+        <select className="input w-auto" value={plan} onChange={(e) => setPlan(e.target.value as "pro" | "pro_max")} aria-label="Plan">
+          <option value="pro">Pro</option>
+          <option value="pro_max">Pro Max</option>
+        </select>
+        <select className="input w-auto" value={months} onChange={(e) => setMonths(Number(e.target.value))} aria-label="Months">
+          {[1, 3, 6, 12, 0].map((m) => (
+            <option key={m} value={m}>
+              {m === 0 ? "बंद करें" : `${m} महीने`}
+            </option>
+          ))}
+        </select>
+        <input className="input w-28" type="number" min={0} value={amount} onChange={(e) => setAmount(Number(e.target.value))} aria-label="₹ received" />
+        <button
+          type="button"
+          className="btn-small bg-amber-500 text-white"
+          disabled={pending}
+          onClick={() =>
+            start(async () => {
+              const r = await setClinicPlan(clinicId, plan, months, amount);
+              setMsg(r.ok ? `✓ ${months === 0 ? "Pro बंद" : `Pro चालू, ${r.until?.slice(0, 10)} तक`}` : (r.error ?? "Error"));
+            })
+          }
+        >
+          {pending ? "…" : "सेव"}
+        </button>
+      </div>
+      {msg && <div className="mt-1 text-xs text-amber-900">{msg}</div>}
     </div>
   );
 }

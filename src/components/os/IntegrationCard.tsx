@@ -5,6 +5,8 @@ import type { CardWords } from "@/lib/os-content";
 import type { Lang } from "@/lib/i18n";
 import { LogoTile } from "./LogoTile";
 import { StatusPill } from "./StatusPill";
+import Link from "next/link";
+import { ProLock } from "@/components/ProBadge";
 
 /**
  * One AI service. Live ones just show "Live". Key-ready ones show Connect with the exact
@@ -16,30 +18,46 @@ export function IntegrationCard({
   w,
   lang,
   isAdmin,
+  locked = false,
+  unlockLabel = "Pro",
 }: {
   item: Integration;
   status: IntegrationStatus;
   w: CardWords;
   lang: Lang;
   isAdmin: boolean;
+  /** needs Clinic Easy Pro and this clinic does not have it */
+  locked?: boolean;
+  unlockLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const action = status === "ready" ? w.connect : status === "soon" ? w.join : null;
   const steps = item.steps[lang];
   return (
-    <li id={item.id} className="card flex scroll-mt-40 flex-col gap-3 p-4" data-testid={`svc-${item.id}`} data-status={status}>
+    <li id={item.id} className="card flex scroll-mt-40 flex-col gap-3 p-4" data-testid={`svc-${item.id}`} data-status={status} data-locked={locked ? "1" : undefined}>
       <div className="flex items-start gap-3">
         <LogoTile icon={item.icon} accent={item.accent} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-lg font-bold text-white">{item.title[lang]}</span>
-            <StatusPill status={status} w={w} />
+            <span className="flex items-center gap-1.5">
+              {locked && <ProLock />}
+              <StatusPill status={status} w={w} />
+            </span>
           </div>
           <div className="font-brand text-[11px] uppercase tracking-[0.18em] text-cyan-300/80">{item.provider}</div>
         </div>
       </div>
       <p className="text-base leading-relaxed text-slate-300">{item.body[lang]}</p>
-      {action && (
+      {locked && (
+        <Link
+          href="/pro"
+          className="btn-small min-h-11 w-full gap-2 bg-gradient-to-r from-amber-300 via-pink-400 to-violet-500 font-bold text-[#140a24]"
+        >
+          ✦ {unlockLabel}
+        </Link>
+      )}
+      {!locked && action && (
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}

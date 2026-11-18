@@ -5,6 +5,7 @@ import { LangSwitch } from "@/components/LangSwitch";
 import { BrandMark, BrandName } from "@/components/BrandMark";
 import { LandingIcon } from "@/components/LandingIcon";
 import { SupportContact } from "@/components/SupportContact";
+import { ProBadge } from "@/components/ProBadge";
 
 // Public front page: the first thing a doctor sees. Dark, "AI clinic OS" look.
 // Pure server HTML + CSS animations (no client JS) so it stays fast on cheap phones.
@@ -29,8 +30,13 @@ export default async function Home() {
             <BrandMark size={38} />
             <BrandName />
           </span>
-          <span className="[&_button]:border [&_button]:border-white/20 [&_button]:bg-white/5 [&_button]:text-white [&_button]:backdrop-blur">
-            <LangSwitch />
+          <span className="flex items-center gap-2">
+            <Link href="/pricing" aria-label="Clinic Easy Pro" data-testid="landing-pro">
+              <ProBadge size="md" />
+            </Link>
+            <span className="[&_button]:border [&_button]:border-white/20 [&_button]:bg-white/5 [&_button]:text-white [&_button]:backdrop-blur">
+              <LangSwitch />
+            </span>
           </span>
         </header>
 
@@ -84,6 +90,9 @@ export default async function Home() {
               {c.ctaDay}
             </a>
           </div>
+          <Link href="/pricing" className="mt-4 text-sm font-semibold text-amber-200 underline decoration-amber-300/50 underline-offset-4 hover:text-amber-100">
+            {lang === "hi" ? "✦ Clinic Easy Pro: लॉन्च ऑफ़र, 90% तक छूट →" : "✦ Clinic Easy Pro: launch offer, up to 90% off →"}
+          </Link>
 
           <ul className="mt-8 flex flex-wrap justify-center gap-2">
             {c.pills.map((p) => (

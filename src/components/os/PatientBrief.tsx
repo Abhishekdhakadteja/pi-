@@ -15,7 +15,20 @@ type Words = {
 };
 
 /** Doctor's brief for the patient in the room: free auto points, plus the Claude summary when connected. */
-export function PatientBrief({ appointmentId, lines, aiOn, words: w }: { appointmentId: string; lines: string[]; aiOn: boolean; words: Words }) {
+export function PatientBrief({
+  appointmentId,
+  lines,
+  aiOn,
+  proLocked = null,
+  words: w,
+}: {
+  appointmentId: string;
+  lines: string[];
+  aiOn: boolean;
+  /** text of the "needs Pro" link, when the clinic is not on Pro */
+  proLocked?: string | null;
+  words: Words;
+}) {
   const [ai, setAi] = useState<string[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [pending, start] = useTransition();
@@ -70,6 +83,15 @@ export function PatientBrief({ appointmentId, lines, aiOn, words: w }: { appoint
               {pending ? w.pbAiWorking : `✦ ${w.pbAi}`}
             </button>
           )
+        ) : proLocked ? (
+          <Link
+            href="/pro"
+            className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-amber-300/40 bg-amber-300/10 px-3 py-2 text-sm text-amber-50"
+            data-testid="ai-pro-lock"
+          >
+            <span>✦ {proLocked}</span>
+            <span className="pro-text rounded-full border border-amber-300/50 px-2 text-xs font-extrabold">PRO</span>
+          </Link>
         ) : (
           <Link
             href="/ai#claude"
