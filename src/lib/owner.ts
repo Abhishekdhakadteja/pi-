@@ -6,7 +6,7 @@ import { isOwnerEmail, parseOwnerEmails } from "@/lib/owner-utils";
 export type Owner = { id: string; email: string };
 
 /**
- * The owner (the person who runs ClinicEase, not a clinic) is any logged-in user whose
+ * The owner (the person who runs Clinic Easy, not a clinic) is any logged-in user whose
  * email is listed in the OWNER_EMAILS environment variable. Empty = nobody, page hidden.
  */
 export async function getOwner(): Promise<Owner | null> {

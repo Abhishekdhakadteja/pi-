@@ -6,7 +6,7 @@ export const LANGS: Lang[] = ["hi", "en"];
 export const LANG_COOKIE = "lang";
 
 const en = {
-  appName: "ClinicEase",
+  appName: "Clinic Easy",
   tagline: "Simple clinic management",
   switchLang: "हिंदी",
   staffLogin: "Staff login",
@@ -300,7 +300,7 @@ export type DictKey = keyof typeof en;
 type Dict = Record<DictKey, string>;
 
 const hi: Dict = {
-  appName: "ClinicEase",
+  appName: "Clinic Easy",
   tagline: "आसान क्लिनिक मैनेजमेंट",
   switchLang: "English",
   staffLogin: "स्टाफ लॉगिन",

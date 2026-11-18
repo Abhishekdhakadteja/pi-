@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160" role="img" aria-label="Clinic Easy">
+  <defs>
+    <linearGradient id="ce-tile-l" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14b8a6"/>
+      <stop offset="1" stop-color="#047857"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(16 16) scale(0.25)">
+    <rect width="512" height="512" rx="120" fill="url(#ce-tile-l)"/>
+    <g fill="#ffffff">
+      <rect x="176" y="80" width="160" height="352" rx="44"/>
+      <rect x="80" y="176" width="352" height="160" rx="44"/>
+    </g>
+    <path fill="none" stroke="#0f766e" stroke-width="32" stroke-linecap="round" stroke-linejoin="round" d="M198 258l40 40 78-80"/>
+  </g>
+  <text x="168" y="98" font-family="Poppins, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="62" font-weight="700" letter-spacing="-1">
+    <tspan fill="#0b3b44">Clinic</tspan><tspan fill="#0f9f8a" dx="14">Easy</tspan>
+  </text>
+  <text x="170" y="128" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="500" letter-spacing="3" fill="#5b7a80">SMART CLINIC MANAGEMENT</text>
+</svg>

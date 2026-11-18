@@ -4,7 +4,9 @@ import { getLang } from "@/lib/lang-server";
 import { LangProvider } from "@/components/LangProvider";
 
 export const metadata: Metadata = {
-  title: "ClinicEase",
+  title: "Clinic Easy",
+  applicationName: "Clinic Easy",
+  appleWebApp: { capable: true, title: "Clinic Easy", statusBarStyle: "default" },
   description: "Simple clinic management for small clinics",
 };
 

@@ -1,14 +1,37 @@
-/** ClinicEase logo: a medical cross inside a soft gradient tile. */
+/**
+ * Clinic Easy logo mark: a white medical cross with a "done" tick, on a teal-to-emerald tile.
+ * The same drawing lives in public/brand/clinic-easy-mark.svg and src/app/icon.svg.
+ */
 export function BrandMark({ size = 40 }: { size?: number }) {
   return (
-    <span
-      className="inline-flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 shadow-md shadow-teal-900/20 ring-1 ring-white/30"
-      style={{ width: size, height: size }}
+    <svg
+      viewBox="0 0 512 512"
+      width={size}
+      height={size}
+      className="shrink-0 drop-shadow-md"
       aria-hidden="true"
+      focusable="false"
     >
-      <svg viewBox="0 0 24 24" width={size * 0.6} height={size * 0.6} fill="white">
-        <path d="M9.5 3h5a1 1 0 0 1 1 1v4.5H20a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-4.5V20a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-4.5H4a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1h4.5V4a1 1 0 0 1 1-1z" />
-      </svg>
-    </span>
+      <defs>
+        <linearGradient id="clinic-easy-tile" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#14b8a6" />
+          <stop offset="1" stopColor="#047857" />
+        </linearGradient>
+      </defs>
+      <rect width="512" height="512" rx="120" fill="url(#clinic-easy-tile)" />
+      <rect width="510" height="510" x="1" y="1" rx="119" fill="none" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="2" />
+      <g fill="#ffffff">
+        <rect x="176" y="80" width="160" height="352" rx="44" />
+        <rect x="80" y="176" width="352" height="160" rx="44" />
+      </g>
+      <path
+        d="M198 258l40 40 78-80"
+        fill="none"
+        stroke="#0f766e"
+        strokeWidth="32"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

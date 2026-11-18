@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const r = await buildReport(staff.clinic_id, period);
 
   const wb = new ExcelJS.Workbook();
-  wb.creator = "ClinicEase";
+  wb.creator = "Clinic Easy";
   const summary = wb.addWorksheet("Summary");
   summary.columns = [
     { header: "Item", key: "k", width: 32 },
@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
   return new NextResponse(new Uint8Array(buf as ArrayBuffer), {
     headers: {
       "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "content-disposition": `attachment; filename="clinicease-${period}-${r.from}.xlsx"`,
+      "content-disposition": `attachment; filename="clinic-easy-${period}-${r.from}.xlsx"`,
       "cache-control": "no-store",
     },
   });

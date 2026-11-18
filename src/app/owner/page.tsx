@@ -7,7 +7,7 @@ import { logout } from "@/app/login/actions";
 import { BrandMark } from "@/components/BrandMark";
 import { NewClinicForm, ClinicPauseButton } from "./OwnerForms";
 
-export const metadata: Metadata = { title: "Owner · ClinicEase", robots: { index: false } };
+export const metadata: Metadata = { title: "Owner · Clinic Easy", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 type Row = {
@@ -61,7 +61,7 @@ export default async function OwnerPage() {
           <div className="flex min-w-0 items-center gap-3">
             <BrandMark size={40} />
             <div className="min-w-0">
-              <div className="truncate text-lg font-bold leading-tight">ClinicEase Owner</div>
+              <div className="truncate text-lg font-bold leading-tight">Clinic Easy Owner</div>
               <div className="truncate text-sm text-teal-100/90">{owner.email}</div>
             </div>
           </div>
