@@ -85,7 +85,7 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "pro_max",
     name: "Clinic Easy Pro Max",
     doctors: 3,
-    mrpMonth: 14999,
+    mrpMonth: 15999,
     month: 9999,
     year: 99999,
     firstMonth: null,

@@ -55,7 +55,7 @@ describe("Pro pricing", () => {
     expect(pctOff(PLANS.pro.mrpMonth, PLANS.pro.month)).toBe(40);
     expect(pctOff(PLANS.pro.mrpMonth, PLANS.pro.firstMonth!)).toBe(90);
     expect(pctOff(PLANS.pro.mrpMonth * 12, PLANS.pro.year)).toBe(50);
-    expect(pctOff(PLANS.pro_max.mrpMonth, PLANS.pro_max.month)).toBe(33);
+    expect(pctOff(PLANS.pro_max.mrpMonth, PLANS.pro_max.month)).toBe(38);
     expect(pctOff(PLANS.basic.mrpMonth, PLANS.basic.month)).toBe(50);
   });
   it("charges GST on top, in paise", () => {
