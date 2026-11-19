@@ -8,7 +8,7 @@ import { IntegrationCard } from "@/components/os/IntegrationCard";
 import { LogoTile } from "@/components/os/LogoTile";
 import { StatusPill } from "@/components/os/StatusPill";
 import { getPlanState } from "@/lib/subscription";
-import { isProService } from "@/lib/plans";
+import { canUse, requiredPlan } from "@/lib/plans";
 import { getProWords } from "@/lib/pro-content";
 import { ProBadge } from "@/components/ProBadge";
 import Link from "next/link";
@@ -64,7 +64,7 @@ export default async function AiCenterPage() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-bold text-white">{a.title[lang]}</span>
-                  {!plan.pro && isProService(a.id) ? (
+                  {!canUse(a.id, plan) ? (
                     <Link href="/pro" className="rounded-full border border-amber-300/40 bg-amber-300/10 px-2 py-0.5 text-xs font-bold text-amber-200" data-testid={`agent-lock-${a.id}`}>
                       🔒 {pw.agentLocked}
                     </Link>
@@ -112,8 +112,8 @@ export default async function AiCenterPage() {
               w={cw}
               lang={lang}
               isAdmin={staff.role === "admin"}
-              locked={!plan.pro && isProService(i.id)}
-              unlockLabel={pw.unlock}
+              locked={!canUse(i.id, plan)}
+              unlockLabel={requiredPlan(i.id) === "pro_max" ? pw.unlockMax : pw.unlock}
             />
           ))}
         </ul>

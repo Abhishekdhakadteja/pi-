@@ -3,6 +3,7 @@ import { createHmac } from "node:crypto";
 import {
   PLANS,
   PRO_SERVICES,
+  MAX_SERVICES,
   amountPaise,
   extendPlan,
   isProService,
@@ -54,7 +55,7 @@ describe("Pro pricing", () => {
     expect(pctOff(PLANS.pro.mrpMonth, PLANS.pro.month)).toBe(40);
     expect(pctOff(PLANS.pro.mrpMonth, PLANS.pro.firstMonth!)).toBe(90);
     expect(pctOff(PLANS.pro.mrpMonth * 12, PLANS.pro.year)).toBe(50);
-    expect(pctOff(PLANS.pro_max.mrpMonth, PLANS.pro_max.month)).toBe(40);
+    expect(pctOff(PLANS.pro_max.mrpMonth, PLANS.pro_max.month)).toBe(33);
     expect(pctOff(PLANS.basic.mrpMonth, PLANS.basic.month)).toBe(50);
   });
   it("charges GST on top, in paise", () => {
@@ -85,7 +86,7 @@ describe("what needs Pro", () => {
   });
   it("lists the same number of features in both languages", () => {
     expect(PRO_FEATURES.hi).toHaveLength(PRO_FEATURES.en.length);
-    expect(PRO_FEATURES.hi).toHaveLength(PRO_SERVICES.length);
+    expect(PRO_FEATURES.hi).toHaveLength(PRO_SERVICES.length - MAX_SERVICES.length);
     expect(BASIC_FEATURES.hi).toHaveLength(5);
     expect(Object.keys(getProWords("hi")).sort()).toEqual(Object.keys(getProWords("en")).sort());
   });

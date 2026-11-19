@@ -334,7 +334,7 @@ export const INTEGRATIONS: Integration[] = [
     kind: "soon",
     icon: "team",
     accent: ["#22b8f5", "#a78bfa"],
-    provider: "ESP32 + BLE (Beta)",
+    provider: "ESP32 + BLE · Pro Max (Beta)",
     title: { hi: "स्टाफ ट्रैकिंग डिवाइस", en: "Staff tracking device" },
     body: {
       hi: "क्लिनिक में एक छोटा ESP32 डिवाइस, स्टाफ के पास ब्लूटूथ टैग। कौन कब आया, कौन अभी अंदर है, कितने घंटे: अपने-आप। सिर्फ़ क्लिनिक के अंदर, ड्यूटी के समय।",
@@ -351,11 +351,11 @@ export const INTEGRATIONS: Integration[] = [
     kind: "soon",
     icon: "spark",
     accent: ["#ec4899", "#22b8f5"],
-    provider: "Wear OS / Health Connect",
-    title: { hi: "स्मार्टवॉच लिंक", en: "Smartwatch link" },
+    provider: "Smartwatch · Health Connect",
+    title: { hi: "डॉक्टर लाइव हेल्थ रिपोर्ट", en: "Doctor live health report" },
     body: {
-      hi: "डॉक्टर या स्टाफ की स्मार्टवॉच से क्लिनिक में आना-जाना और (सहमति से) दिन की थकान/स्टेप्स। पहले Android ऐप, फिर वॉच।",
-      en: "Arrival/departure from a doctor's or staff member's smartwatch and, with consent, the day's steps/fatigue. Android app first, then the watch.",
+      hi: "डॉक्टर की स्मार्टवॉच से (सहमति से) हार्ट-रेट, स्टेप्स, नींद और थकान का रोज़ का हाल, और ज़्यादा थकान पर ब्रेक की याद। यह मेडिकल जाँच नहीं, वेलनेस रिपोर्ट है।",
+      en: "From the doctor's smartwatch (with consent): heart rate, steps, sleep and fatigue each day, with a break reminder when strain is high. A wellness report, not a medical test.",
     },
     steps: {
       hi: ["Clinic Easy Android ऐप (Play Store)", "Health Connect की अनुमति", "Wear OS या Galaxy वॉच (सस्ती ब्लूटूथ वॉच में खुला कनेक्शन नहीं होता)"],

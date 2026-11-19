@@ -6,7 +6,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { getPlanState } from "@/lib/subscription";
 import { todayIST } from "@/lib/dates";
 import { attendanceFromSightings, hoursLabel, nodeOnline } from "@/lib/presence";
-import { getProWords } from "@/lib/pro-content";
+import { maxAllowed } from "@/lib/plans";
 import { AddDeviceForm, AddNodeForm, NodeToggle, RemoveDevice } from "./TrackingForms";
 import { trackWords } from "./words";
 
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 const time = (iso: string) =>
   new Date(iso).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" });
 
-// Staff tracking dashboard (Pro, Beta): today's attendance from the ESP32 nodes, the nodes'
+// Staff tracking dashboard (Pro Max, Beta): today's attendance from the ESP32 nodes, the nodes'
 // health, and which Bluetooth tag belongs to whom.
 export default async function TrackingPage() {
   const staff = await requireRole(["admin"]);
@@ -32,13 +32,13 @@ export default async function TrackingPage() {
     </header>
   );
 
-  if (!plan.pro) {
+  if (!maxAllowed(plan)) {
     return (
       <StaffShell staff={staff}>
         {header}
         <Link href="/pro" className="pro-card-hero flex items-center justify-between gap-3 rounded-2xl p-4" data-testid="tracking-locked">
           <span className="font-bold">🔒 {w.locked}</span>
-          <span className="btn-small shrink-0">{getProWords(lang).unlock} →</span>
+          <span className="btn-small shrink-0">{w.getMax} →</span>
         </Link>
       </StaffShell>
     );

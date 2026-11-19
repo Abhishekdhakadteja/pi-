@@ -1,4 +1,4 @@
-// Staff tracking (Pro, Beta): pure helpers shared by the /api/presence endpoint, the dashboard and
+// Staff tracking (Pro Max, Beta): pure helpers shared by the /api/presence endpoint, the dashboard and
 // the tests. No server code here.
 //
 // How it works: an ESP32 in the clinic scans Bluetooth every ~20 s and posts the tags it saw.

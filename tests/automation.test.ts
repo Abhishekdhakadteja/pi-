@@ -12,7 +12,7 @@ import {
   nodeOnline,
   normalizeIdentifier,
 } from "@/lib/presence";
-import { PRO_SERVICES, aiAllowed, isProService, planState } from "@/lib/plans";
+import { MAX_SERVICES, PRO_SERVICES, aiAllowed, canUse, isProService, maxAllowed, planState, requiredPlan } from "@/lib/plans";
 import { INTEGRATIONS } from "@/lib/integrations";
 
 function filesUnder(dir: string): string[] {
@@ -52,6 +52,35 @@ describe("AI is Pro-only (Basic costs ₹0 in AI)", () => {
       expect(gate, f).toBeGreaterThan(0);
       expect(gate, f).toBeLessThan(call);
     }
+  });
+});
+
+describe("three plans: Basic, Pro, Pro Max", () => {
+  const now = new Date("2026-11-19T12:00:00Z");
+  const basic = planState(null, now);
+  const trial = planState({ plan: "basic", pro_trial_ends_at: "2026-11-25T00:00:00Z", pro_trial_used: true }, now);
+  const pro = planState({ plan: "pro", plan_until: "2026-12-19T00:00:00Z" }, now);
+  const max = planState({ plan: "pro_max", plan_until: "2026-12-19T00:00:00Z" }, now);
+
+  it("ESP32 tracking and the doctor health report need Pro Max", () => {
+    expect([...MAX_SERVICES].sort()).toEqual(["smartwatch", "staff_tracking"]);
+    for (const id of MAX_SERVICES) {
+      expect(requiredPlan(id)).toBe("pro_max");
+      expect(canUse(id, basic)).toBe(false);
+      expect(canUse(id, trial)).toBe(false);
+      expect(canUse(id, pro)).toBe(false);
+      expect(canUse(id, max)).toBe(true);
+    }
+    expect(maxAllowed(pro)).toBe(false);
+    expect(maxAllowed(max)).toBe(true);
+  });
+
+  it("the AI Manager (claude) is Pro and Pro Max; Basic tools stay open", () => {
+    expect(requiredPlan("claude")).toBe("pro");
+    expect(canUse("claude", basic)).toBe(false);
+    expect(canUse("claude", pro)).toBe(true);
+    expect(canUse("claude", max)).toBe(true);
+    expect(canUse("booking", basic)).toBe(true);
   });
 });
 

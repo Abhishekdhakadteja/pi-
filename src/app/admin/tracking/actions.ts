@@ -4,16 +4,17 @@ import { supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
 import { assertRole } from "@/lib/staff";
 import { audit } from "@/lib/audit";
 import { getPlanState } from "@/lib/subscription";
+import { maxAllowed } from "@/lib/plans";
 import { hashToken, newNodeToken, normalizeIdentifier } from "@/lib/presence";
 
-// Staff tracking (Pro, Beta): admin adds ESP32 nodes and links Bluetooth tags to staff.
+// Staff tracking (Pro Max, Beta): admin adds ESP32 nodes and links Bluetooth tags to staff.
 type Err = "pro" | "db" | "name" | "tag" | "exists" | "generic";
 export type TrackRes = { ok: true; token?: string } | { ok: false; error: Err };
 
 async function proAdmin() {
   const admin = await assertRole(["admin"]);
   const plan = await getPlanState(admin.clinic_id);
-  return { admin, pro: plan.pro };
+  return { admin, pro: maxAllowed(plan) };
 }
 
 /** Creates an ESP32 node. The token is returned ONCE; only its hash is saved. */

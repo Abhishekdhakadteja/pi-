@@ -1,9 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { proClinicIds } from "@/lib/subscription";
+import { getPlanState } from "@/lib/subscription";
+import { maxAllowed } from "@/lib/plans";
 import { PresencePost, STORE_EVERY_SECONDS, bearerToken, cleanSightings, hashToken } from "@/lib/presence";
 
-// Staff tracking (Pro, Beta). The ESP32 presence node posts here every ~20 s:
+// Staff tracking (Pro Max, Beta). The ESP32 presence node posts here every ~20 s:
 //   POST /api/presence
 //   Authorization: Bearer cen_xxx          (the token shown once when the admin added the node)
 //   { "fw": "cen-node-1.0", "sightings": [ { "id": "aa:bb:cc:dd:ee:ff", "rssi": -61 }, ... ] }
@@ -37,9 +38,9 @@ export async function POST(req: NextRequest) {
     .update({ last_seen_at: now.toISOString(), firmware: post.fw ?? null })
     .eq("id", node.id);
 
-  // Staff tracking is a Pro service: a Basic clinic's node stays "online" but nothing is stored.
-  if (!(await proClinicIds([node.clinic_id], now)).has(node.clinic_id)) {
-    return NextResponse.json({ ok: true, stored: 0, pro: false });
+  // Staff tracking is Pro Max only: on any other plan the node stays "online" but nothing is stored.
+  if (!maxAllowed(await getPlanState(node.clinic_id, now))) {
+    return NextResponse.json({ ok: true, stored: 0, max: false });
   }
 
   const seen = cleanSightings(post);
