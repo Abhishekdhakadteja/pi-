@@ -4,7 +4,7 @@ import { getLanding } from "@/lib/landing-content";
 import { LangSwitch } from "@/components/LangSwitch";
 import { BrandMark, BrandName } from "@/components/BrandMark";
 import { LandingIcon } from "@/components/LandingIcon";
-import { SupportContact } from "@/components/SupportContact";
+import { HubLine, TeamContact } from "@/components/TeamContact";
 import { ProBadge } from "@/components/ProBadge";
 
 // Public front page: the first thing a doctor sees. Dark, "AI clinic OS" look.
@@ -178,14 +178,20 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* support contact */}
-        <section className="pb-14">
-          <SupportContact lang={lang} />
+        {/* contact: founders (Sales, Technical) + main hub */}
+        <section id="contact" className="pb-14">
+          <TeamContact lang={lang} />
         </section>
 
-        <footer className="flex items-center justify-center gap-2 border-t border-white/10 py-8 text-sm text-slate-500">
-          <BrandMark size={20} />
-          {c.footer}
+        <footer className="flex flex-col items-center justify-center gap-2 border-t border-white/10 py-8 text-sm text-slate-500 md:flex-row md:gap-4">
+          <span className="flex items-center gap-2">
+            <BrandMark size={20} />
+            {c.footer}
+          </span>
+          <HubLine lang={lang} />
+          <Link href="/contact" className="text-cyan-300 underline-offset-4 hover:underline">
+            {lang === "hi" ? "संपर्क करें" : "Contact"}
+          </Link>
         </footer>
       </div>
     </main>

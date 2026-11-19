@@ -1,20 +1,89 @@
-// Clinic Easy support contact, shown on the front page, the login page and inside the app.
-// Fill these two lines (or set NEXT_PUBLIC_SUPPORT_PHONE / NEXT_PUBLIC_SUPPORT_EMAIL on Netlify).
-// Phone: 10-digit Indian mobile, used for Call and WhatsApp. If both are empty, the box is hidden.
+// Clinic Easy contact details, shown on the front page, pricing, login, /contact and inside the app.
+//
+// Fill the TEAM lines below (or set the NEXT_PUBLIC_* variables on Netlify). A person with no phone
+// and no email is hidden, so an empty or half-filled entry never shows a broken card.
+// Phone: 10-digit Indian mobile, used for Call and WhatsApp.
+
+export type TeamRole = "sales" | "tech";
+type TeamSeed = { role: TeamRole; name: string; phone: string; email: string };
+
+const TEAM: TeamSeed[] = [
+  { role: "sales", name: "", phone: "", email: "" },
+  { role: "tech", name: "", phone: "", email: "" },
+];
+
+/** Main hub, shown under the contact cards. */
+export const HUB = { hi: "मुख्य केंद्र: गुना, मध्य प्रदेश", en: "Main hub: Guna, Madhya Pradesh" } as const;
+
+/** Old single support line (kept so existing Netlify settings keep working). */
 const PHONE = "";
 const EMAIL = "";
 
+export type TeamMember = {
+  role: TeamRole;
+  name: string;
+  phone: string;
+  email: string;
+  tel: string;
+  whatsapp: string;
+  display: string;
+};
 export type SupportContact = { phone: string; email: string; tel: string; whatsapp: string; display: string };
 
-export function getSupportContact(): SupportContact | null {
-  const phone = (process.env.NEXT_PUBLIC_SUPPORT_PHONE || PHONE).replace(/\D/g, "").slice(-10);
-  const email = (process.env.NEXT_PUBLIC_SUPPORT_EMAIL || EMAIL).trim();
-  if (!phone && !email) return null;
+export function cleanPhone(raw: string | undefined | null): string {
+  const d = (raw ?? "").replace(/\D/g, "");
+  return d.length >= 10 ? d.slice(-10) : "";
+}
+
+function links(phone: string, text: string) {
   return {
-    phone,
-    email,
     tel: phone ? `tel:+91${phone}` : "",
-    whatsapp: phone ? `https://wa.me/91${phone}?text=${encodeURIComponent("Hello Clinic Easy team, I need help.")}` : "",
+    whatsapp: phone ? `https://wa.me/91${phone}?text=${encodeURIComponent(text)}` : "",
     display: phone ? `+91 ${phone.slice(0, 5)} ${phone.slice(5)}` : "",
   };
+}
+
+
+// NEXT_PUBLIC_* must be read with literal names so Next.js can inline them in the browser bundle.
+function envFor(role: TeamRole) {
+  return role === "sales"
+    ? {
+        name: process.env.NEXT_PUBLIC_SALES_NAME,
+        phone: process.env.NEXT_PUBLIC_SALES_PHONE,
+        email: process.env.NEXT_PUBLIC_SALES_EMAIL,
+      }
+    : {
+        name: process.env.NEXT_PUBLIC_TECH_NAME,
+        phone: process.env.NEXT_PUBLIC_TECH_PHONE,
+        email: process.env.NEXT_PUBLIC_TECH_EMAIL,
+      };
+}
+
+/** The two founders (Sales, Technical support). Only people with a phone or an email. */
+export function getTeam(seed: TeamSeed[] = TEAM): TeamMember[] {
+  return seed
+    .map((p) => {
+      const env: { name?: string; phone?: string; email?: string } = seed === TEAM ? envFor(p.role) : {};
+      const phone = cleanPhone(env.phone || p.phone);
+      const email = (env.email || p.email).trim();
+      const name = (env.name || p.name).trim();
+      const text =
+        p.role === "sales" ? "Hello Clinic Easy, I want to know about the plans." : "Hello Clinic Easy, I need technical help.";
+      return { role: p.role, name, phone, email, ...links(phone, text) };
+    })
+    .filter((p) => p.phone || p.email);
+}
+
+/** One line for the support box: the old support setting, else technical, else sales. */
+export function getSupportContact(): SupportContact | null {
+  let phone = cleanPhone(process.env.NEXT_PUBLIC_SUPPORT_PHONE || PHONE);
+  let email = (process.env.NEXT_PUBLIC_SUPPORT_EMAIL || EMAIL).trim();
+  if (!phone && !email) {
+    const team = getTeam();
+    const p = team.find((t) => t.role === "tech") ?? team[0];
+    if (!p) return null;
+    phone = p.phone;
+    email = p.email;
+  }
+  return { phone, email, ...links(phone, "Hello Clinic Easy team, I need help.") };
 }
