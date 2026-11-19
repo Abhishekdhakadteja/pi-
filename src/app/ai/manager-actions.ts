@@ -32,11 +32,10 @@ export async function askClinicAI(question: string, history: unknown): Promise<A
   const q = String(question ?? "").trim().slice(0, MAX_QUESTION_CHARS);
   if (!q) return { ok: false, error: "empty" };
 
-  const { aiConfigured } = await import("@/lib/ai");
-  if (!aiConfigured()) return { ok: false, error: "ai_off" };
-  const { getPlanState } = await import("@/lib/subscription");
-  const plan = await getPlanState(staff.clinic_id);
-  if (!plan.pro) return { ok: false, error: "pro" };
+  const { requireProAI } = await import("@/lib/ai-guard");
+  const gate = await requireProAI(staff.clinic_id);
+  if (!gate.ok) return { ok: false, error: gate.reason };
+  const plan = gate.plan;
 
   // Fair use: count today's questions for the whole clinic (audit_log is admin-read only, so the
   // count uses the service role, filtered to this clinic).

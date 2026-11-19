@@ -153,10 +153,9 @@ export async function aiPatientSummary(
   appointmentId: string,
 ): Promise<{ ok: true; lines: string[] } | { ok: false; error: "ai_off" | "ai_failed" | ErrorCode }> {
   const staff = await assertRole(["doctor"]);
-  const { aiConfigured, summarizePatient } = await import("@/lib/ai");
-  if (!aiConfigured()) return { ok: false, error: "ai_off" };
-  const { getPlanState } = await import("@/lib/subscription");
-  if (!(await getPlanState(staff.clinic_id)).pro) return { ok: false, error: "ai_off" };
+  const { requireProAI } = await import("@/lib/ai-guard");
+  if (!(await requireProAI(staff.clinic_id)).ok) return { ok: false, error: "ai_off" };
+  const { summarizePatient } = await import("@/lib/ai");
   const appt = await loadAppointment(appointmentId, staff.clinic_id);
   if (!appt) return { ok: false, error: "err_generic" };
   const supabase = await supabaseServer();

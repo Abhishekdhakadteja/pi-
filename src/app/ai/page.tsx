@@ -12,6 +12,8 @@ import { isProService } from "@/lib/plans";
 import { getProWords } from "@/lib/pro-content";
 import { ProBadge } from "@/components/ProBadge";
 import Link from "next/link";
+import { KnowledgeForm } from "@/components/os/KnowledgeForm";
+import { supabaseAdmin } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +27,12 @@ export default async function AiCenterPage() {
   const pw = getProWords(lang);
   const plan = await getPlanState(staff.clinic_id);
   const env = process.env as Record<string, string | undefined>;
+  const canTeach = plan.pro && (staff.role === "admin" || staff.role === "doctor");
+  let knowledge = "";
+  if (canTeach) {
+    const { data } = await supabaseAdmin().from("clinics").select("ai_knowledge").eq("id", staff.clinic_id).maybeSingle();
+    knowledge = ((data as { ai_knowledge?: string | null } | null)?.ai_knowledge ?? "") || "";
+  }
   const agents = INTEGRATIONS.filter((i) => i.kind === "free");
   const services = INTEGRATIONS.filter((i) => i.kind !== "free")
     .map((i) => ({ i, s: integrationStatus(i, env) }))
@@ -56,7 +64,13 @@ export default async function AiCenterPage() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-bold text-white">{a.title[lang]}</span>
-                  <StatusPill status="live" w={w} />
+                  {!plan.pro && isProService(a.id) ? (
+                    <Link href="/pro" className="rounded-full border border-amber-300/40 bg-amber-300/10 px-2 py-0.5 text-xs font-bold text-amber-200" data-testid={`agent-lock-${a.id}`}>
+                      🔒 {pw.agentLocked}
+                    </Link>
+                  ) : (
+                    <StatusPill status="live" w={w} />
+                  )}
                 </div>
                 <p className="mt-0.5 text-sm leading-snug text-slate-400">{a.body[lang]}</p>
               </div>
@@ -64,6 +78,8 @@ export default async function AiCenterPage() {
           ))}
         </ul>
       </section>
+
+      {canTeach && <KnowledgeForm initial={knowledge} />}
 
       <section className="mt-8" data-testid="services">
         <h2 className="flex items-center gap-2 text-xl font-bold">

@@ -28,6 +28,8 @@ export type IntegrationId =
   | "video"
   | "location"
   | "attendance"
+  | "staff_tracking"
+  | "smartwatch"
   | "abha"
   | "razorpay";
 
@@ -326,6 +328,40 @@ export const INTEGRATIONS: Integration[] = [
     },
     steps: { hi: ["डेटाबेस अपडेट (एक SQL)"], en: ["A database update (one SQL)"] },
     cost: { hi: "मुफ़्त", en: "Free" },
+  },
+  {
+    id: "staff_tracking",
+    kind: "soon",
+    icon: "team",
+    accent: ["#22b8f5", "#a78bfa"],
+    provider: "ESP32 + BLE (Beta)",
+    title: { hi: "स्टाफ ट्रैकिंग डिवाइस", en: "Staff tracking device" },
+    body: {
+      hi: "क्लिनिक में एक छोटा ESP32 डिवाइस, स्टाफ के पास ब्लूटूथ टैग। कौन कब आया, कौन अभी अंदर है, कितने घंटे: अपने-आप। सिर्फ़ क्लिनिक के अंदर, ड्यूटी के समय।",
+      en: "A small ESP32 device in the clinic and a Bluetooth tag with each staff member. Who came when, who is in now, how many hours: automatic. Inside the clinic only, during duty.",
+    },
+    steps: {
+      hi: ["डेटाबेस अपडेट (एक SQL)", "ESP32 बोर्ड (लगभग ₹400-550) + हर स्टाफ के लिए BLE टैग (लगभग ₹500-1,200)", "Settings → स्टाफ ट्रैकिंग में डिवाइस जोड़ें, firmware फ़्लैश करें"],
+      en: ["A database update (one SQL)", "An ESP32 board (about ₹400-550) + a BLE tag per staff member (about ₹500-1,200)", "Add the device in Settings → Staff tracking and flash the firmware"],
+    },
+    cost: { hi: "एक बार हार्डवेयर लगभग ₹1,500-5,000, फिर मुफ़्त", en: "One-time hardware about ₹1,500-5,000, then free" },
+  },
+  {
+    id: "smartwatch",
+    kind: "soon",
+    icon: "spark",
+    accent: ["#ec4899", "#22b8f5"],
+    provider: "Wear OS / Health Connect",
+    title: { hi: "स्मार्टवॉच लिंक", en: "Smartwatch link" },
+    body: {
+      hi: "डॉक्टर या स्टाफ की स्मार्टवॉच से क्लिनिक में आना-जाना और (सहमति से) दिन की थकान/स्टेप्स। पहले Android ऐप, फिर वॉच।",
+      en: "Arrival/departure from a doctor's or staff member's smartwatch and, with consent, the day's steps/fatigue. Android app first, then the watch.",
+    },
+    steps: {
+      hi: ["Clinic Easy Android ऐप (Play Store)", "Health Connect की अनुमति", "Wear OS या Galaxy वॉच (सस्ती ब्लूटूथ वॉच में खुला कनेक्शन नहीं होता)"],
+      en: ["Clinic Easy Android app (Play Store)", "Health Connect permission", "A Wear OS or Galaxy watch (cheap Bluetooth watches have no open connection)"],
+    },
+    cost: { hi: "मुफ़्त (वॉच स्टाफ की अपनी)", en: "Free (staff's own watch)" },
   },
   {
     id: "abha",

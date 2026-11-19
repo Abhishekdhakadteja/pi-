@@ -96,8 +96,14 @@ export const TOP_UPS = [
   { id: "doctor", hi: "एक और डॉक्टर (Pro)", en: "One more doctor (Pro)", price: 1499 },
 ] as const;
 
-/** Every paid AI service and connection needs Pro. The 7 agents ("free" kind) stay in every plan. */
+/**
+ * Everything AI and every automation needs Pro (decision 2026-11-19). Basic is the plain clinic
+ * software for trying Clinic Easy out: booking, queue, 1-tap reminders, prescription, accounts.
+ * So a Basic clinic costs us ₹0 in AI: no Claude call can run for it (see lib/ai-guard.ts).
+ */
 export const PRO_SERVICES: IntegrationId[] = [
+  "auto_brief",
+  "voice_typing",
   "claude",
   "msg91",
   "wa_cloud",
@@ -107,11 +113,18 @@ export const PRO_SERVICES: IntegrationId[] = [
   "video",
   "location",
   "attendance",
+  "staff_tracking",
+  "smartwatch",
   "abha",
   "razorpay",
 ];
 export function isProService(id: IntegrationId): boolean {
   return PRO_SERVICES.includes(id);
+}
+
+/** Can this clinic use AI right now? Only Pro, Pro Max or a running Pro trial. */
+export function aiAllowed(state: Pick<PlanState, "pro">): boolean {
+  return state.pro === true;
 }
 
 export const pctOff = (mrp: number, price: number) => Math.round((1 - price / mrp) * 100);

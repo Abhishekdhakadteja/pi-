@@ -76,17 +76,17 @@ describe("Pro pricing", () => {
 });
 
 describe("what needs Pro", () => {
-  it("the 7 agents stay free and every paid service needs Pro", () => {
+  it("Basic keeps the 5 plain tools; AI agents and every paid service need Pro", () => {
     const free = INTEGRATIONS.filter((i) => i.kind === "free");
     expect(free).toHaveLength(7);
-    for (const i of free) expect(isProService(i.id)).toBe(false);
+    expect(free.filter((i) => !isProService(i.id)).map((i) => i.id)).toEqual(["booking", "queue", "wa_link", "rx", "upi"]);
     for (const i of INTEGRATIONS.filter((x) => x.kind !== "free")) expect(isProService(i.id)).toBe(true);
-    expect(PRO_SERVICES).toHaveLength(11);
+    expect(PRO_SERVICES).toHaveLength(15);
   });
   it("lists the same number of features in both languages", () => {
     expect(PRO_FEATURES.hi).toHaveLength(PRO_FEATURES.en.length);
     expect(PRO_FEATURES.hi).toHaveLength(PRO_SERVICES.length);
-    expect(BASIC_FEATURES.hi).toHaveLength(7);
+    expect(BASIC_FEATURES.hi).toHaveLength(5);
     expect(Object.keys(getProWords("hi")).sort()).toEqual(Object.keys(getProWords("en")).sort());
   });
 });

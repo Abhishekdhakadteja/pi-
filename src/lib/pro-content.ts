@@ -6,7 +6,7 @@ import type { PlanId } from "./plans";
 const hi = {
   heroKicker: "लॉन्च ऑफ़र · सीमित समय",
   heroTitle: "अपने क्लिनिक को AI ऑटो-पायलट पर डालें",
-  heroSub: "7 AI एजेंट हर प्लान में। Pro में ऑटो SMS, ऑटो WhatsApp, AI कॉलिंग, बोलकर पर्ची, कैमरा से रिपोर्ट, वीडियो कंसल्ट और बहुत कुछ।",
+  heroSub: "Basic में पूरा क्लिनिक सॉफ़्टवेयर आज़माएँ। Pro में पूरा AI और ऑटोमेशन: AI मैनेजर, AI सारांश, ऑटो SMS/WhatsApp, स्टाफ ट्रैकिंग और बहुत कुछ।",
   offerEnds: (d: string) => `लॉन्च कीमतें ${d} तक`,
   monthly: "महीने का",
   yearly: "साल का",
@@ -23,7 +23,7 @@ const hi = {
   trialBasic: "30 दिन मुफ़्त",
   trialPro: "14 दिन Pro मुफ़्त ट्रायल",
   planTag: { basic: "शुरुआत के लिए", pro: "अकेले डॉक्टर के लिए", pro_max: "बड़े / 2-3 डॉक्टर वाले क्लिनिक" } as Record<PlanId, string>,
-  basicIncludes: "7 AI एजेंट, हमेशा",
+  basicIncludes: "क्लिनिक चलाने के 5 टूल, हमेशा",
   proIncludes: "Basic का सब कुछ, और:",
   quotaTitle: "हर महीने शामिल (फ़ेयर यूज़)",
   q: {
@@ -66,6 +66,9 @@ const hi = {
   seePlans: "प्लान देखें",
   proOnly: "Pro",
   aiProOnly: "AI पेशेंट सारांश Pro में। अनलॉक करें →",
+  briefLocked: "AI ब्रीफ़ Pro में: किसकी दवा खत्म, किसका follow-up, आज क्या करना है।",
+  voiceLocked: "बोलकर नोट्स Pro में",
+  agentLocked: "Pro",
   history: "भुगतान",
 };
 
@@ -74,7 +77,7 @@ type ProWords = typeof hi;
 const en: ProWords = {
   heroKicker: "Launch offer · limited time",
   heroTitle: "Put your clinic on AI autopilot",
-  heroSub: "7 AI agents in every plan. Pro adds auto SMS, auto WhatsApp, AI calling, voice prescriptions, camera-read reports, video consults and more.",
+  heroSub: "Try the full clinic software on Basic. Pro adds all the AI and automation: AI Manager, AI summary, auto SMS/WhatsApp, staff tracking and more.",
   offerEnds: (d: string) => `Launch prices until ${d}`,
   monthly: "Monthly",
   yearly: "Yearly",
@@ -91,7 +94,7 @@ const en: ProWords = {
   trialBasic: "30 days free",
   trialPro: "14-day free Pro trial",
   planTag: { basic: "To get started", pro: "For a solo doctor", pro_max: "Busy / 2-3 doctor clinics" },
-  basicIncludes: "7 AI agents, always",
+  basicIncludes: "5 tools to run the clinic, always",
   proIncludes: "Everything in Basic, plus:",
   quotaTitle: "Included every month (fair use)",
   q: {
@@ -133,6 +136,9 @@ const en: ProWords = {
   seePlans: "See plans",
   proOnly: "Pro",
   aiProOnly: "AI patient summary is in Pro. Unlock →",
+  briefLocked: "The AI brief is in Pro: whose medicine is ending, who is due, what to do today.",
+  voiceLocked: "Voice notes are in Pro",
+  agentLocked: "Pro",
   history: "Payments",
 };
 
@@ -144,6 +150,8 @@ export type { ProWords };
 /** The paid services listed on the Pro card, in order. */
 export const PRO_FEATURES: Record<Lang, string[]> = {
   hi: [
+    "आज की AI ब्रीफ़",
+    "बोलकर नोट्स",
     "AI मैनेजर + पेशेंट सारांश (Claude)",
     "ऑटो SMS रिमाइंडर",
     "ऑटो WhatsApp",
@@ -153,10 +161,14 @@ export const PRO_FEATURES: Record<Lang, string[]> = {
     "वीडियो कंसल्ट",
     "लोकेशन और होम डिलीवरी",
     "स्टाफ ऑटो हाज़िरी",
+    "स्टाफ ट्रैकिंग डिवाइस (ESP32, Beta)",
+    "स्मार्टवॉच लिंक (जल्द)",
     "ABHA हेल्थ ID",
     "ऑनलाइन फ़ीस",
   ],
   en: [
+    "Today's AI brief",
+    "Voice notes",
     "AI Manager + patient summary (Claude)",
     "Auto SMS reminders",
     "Auto WhatsApp",
@@ -166,14 +178,16 @@ export const PRO_FEATURES: Record<Lang, string[]> = {
     "Video consult",
     "Location and home delivery",
     "Staff auto attendance",
+    "Staff tracking device (ESP32, Beta)",
+    "Smartwatch link (soon)",
     "ABHA health ID",
     "Online fees",
   ],
 };
 
 export const BASIC_FEATURES: Record<Lang, string[]> = {
-  hi: ["बुकिंग एजेंट (QR / लिंक)", "लाइव कतार एजेंट", "रिमाइंडर एजेंट (1-टैप WhatsApp)", "पर्ची एजेंट", "हिसाब एजेंट + UPI QR", "ऑटो ब्रीफ़", "बोलकर नोट्स"],
-  en: ["Booking agent (QR / link)", "Live queue agent", "Reminder agent (1-tap WhatsApp)", "Prescription agent", "Accounts agent + UPI QR", "Auto brief", "Voice notes"],
+  hi: ["ऑनलाइन बुकिंग (QR / लिंक)", "लाइव कतार", "रिमाइंडर (1-टैप WhatsApp)", "डिजिटल पर्ची", "हिसाब + UPI QR"],
+  en: ["Online booking (QR / link)", "Live queue", "Reminders (1-tap WhatsApp)", "Digital prescription", "Accounts + UPI QR"],
 };
 
 export function rupees(n: number): string {
