@@ -7,7 +7,7 @@ import { TeamContact } from "@/components/TeamContact";
 
 export const metadata: Metadata = {
   title: "Contact · Clinic Easy",
-  description: "Call, WhatsApp or email the Clinic Easy founders: Sales and Technical support. Main hub: Guna, Madhya Pradesh.",
+  description: "Call, WhatsApp or email the Clinic Easy founders: Sales and Technical support. Made in Bharat.",
 };
 
 export default async function ContactPage() {

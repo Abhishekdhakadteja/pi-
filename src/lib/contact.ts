@@ -12,8 +12,8 @@ const TEAM: TeamSeed[] = [
   { role: "tech", name: "", phone: "", email: "" },
 ];
 
-/** Main hub, shown under the contact cards. */
-export const HUB = { hi: "मुख्य केंद्र: गुना, मध्य प्रदेश", en: "Main hub: Guna, Madhya Pradesh" } as const;
+/** Shown under the contact cards with the Indian flag. No city or address, by the founders' choice. */
+export const HUB = { hi: "भारत", en: "भारत" } as const;
 
 /** Old single support line (kept so existing Netlify settings keep working). */
 const PHONE = "";

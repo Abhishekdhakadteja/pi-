@@ -32,7 +32,6 @@ const ICON = {
   call: "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z",
   wa: "M7.9 20A9 9 0 1 0 4.1 16.1L2 22z",
   mail: "M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6",
-  pin: "M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
 };
 
 function I({ d, className = "h-5 w-5" }: { d: string; className?: string }) {
@@ -85,11 +84,31 @@ function Person({ p, w }: { p: TeamMember; w: (typeof WORDS)["hi"] }) {
   );
 }
 
-/** Hub line with a pin, for footers. */
+/** Indian tricolour with the Ashoka Chakra (24 spokes). Drawn inline so it looks the same on every phone. */
+export function IndiaFlag({ className = "h-5 w-auto" }: { className?: string }) {
+  const spokes = Array.from({ length: 24 }, (_, i) => {
+    const a = (i * Math.PI) / 12;
+    return <line key={i} x1="45" y1="30" x2={(45 + 8.4 * Math.cos(a)).toFixed(2)} y2={(30 + 8.4 * Math.sin(a)).toFixed(2)} />;
+  });
+  return (
+    <svg viewBox="0 0 90 60" className={`${className} shrink-0 overflow-hidden rounded-[3px] shadow-[0_0_12px_-2px_rgba(255,153,51,0.6)] ring-1 ring-white/20`} role="img" aria-label="भारत का ध्वज">
+      <rect width="90" height="20" fill="#FF9933" />
+      <rect y="20" width="90" height="20" fill="#FFFFFF" />
+      <rect y="40" width="90" height="20" fill="#138808" />
+      <g stroke="#000080" strokeWidth="0.7" fill="none">
+        <circle cx="45" cy="30" r="9" strokeWidth="1.2" />
+        {spokes}
+      </g>
+      <circle cx="45" cy="30" r="1.8" fill="#000080" />
+    </svg>
+  );
+}
+
+/** Flag + "भारत", for footers and under the contact cards. */
 export function HubLine({ lang }: { lang: Lang }) {
   return (
-    <span className="inline-flex items-center gap-1.5">
-      <I d={ICON.pin} className="h-4 w-4 text-cyan-300" />
+    <span className="inline-flex items-center gap-2 font-semibold text-slate-200">
+      <IndiaFlag />
       {HUB[lang]}
     </span>
   );
@@ -126,7 +145,7 @@ export function TeamContact({ lang, heading = true }: { lang: Lang; heading?: bo
       ) : (
         <p className="relative mt-6 text-base text-slate-400">{w.soon}</p>
       )}
-      <p className="relative mt-6 flex justify-center text-sm text-slate-300">
+      <p className="relative mt-6 flex justify-center text-base">
         <HubLine lang={lang} />
       </p>
     </div>

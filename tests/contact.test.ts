@@ -26,8 +26,8 @@ describe("founder contact", () => {
     expect(p.tel).toBe("");
   });
 
-  it("names Guna as the main hub", () => {
-    expect(HUB.hi).toContain("गुना");
-    expect(HUB.en).toContain("Guna");
+  it("shows only भारत, no city or address", () => {
+    expect(HUB.hi).toBe("भारत");
+    expect(HUB.en).toBe("भारत");
   });
 });
