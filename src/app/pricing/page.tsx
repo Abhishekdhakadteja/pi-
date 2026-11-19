@@ -6,11 +6,11 @@ import { BrandMark, BrandName } from "@/components/BrandMark";
 import { LangSwitch } from "@/components/LangSwitch";
 import { ProBadge } from "@/components/ProBadge";
 import { PricingPlans } from "@/components/pro/PricingPlans";
-import { SupportContact } from "@/components/SupportContact";
+import { TeamContact } from "@/components/TeamContact";
 
 export const metadata: Metadata = {
   title: "Clinic Easy Pro · Plans",
-  description: "Clinic Easy plans: 7 AI agents in Basic, every AI service in Pro. Launch offer up to 90% off.",
+  description: "Clinic Easy plans: Basic ₹499, Pro ₹2,999 with every AI service, Pro Max with live staff tracking.",
 };
 
 // Public pricing page. Buttons send the doctor to log in and then to /pro inside the app.
@@ -39,7 +39,7 @@ export default async function PricingPage() {
         </section>
         <PricingPlans lang={lang} ctx={{ mode: "public" }} />
         <div className="mt-10">
-          <SupportContact lang={lang} variant="compact" tone="dark" />
+          <TeamContact lang={lang} />
         </div>
       </div>
     </main>
