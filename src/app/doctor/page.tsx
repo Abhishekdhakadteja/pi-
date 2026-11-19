@@ -174,7 +174,7 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
           </section>
 
           <section className="card">
-            <VisitForm key={`v-${inRoom.id}`} appointmentId={inRoom.id} notes={current?.doctor_notes ?? ""} diagnosis={current?.diagnosis ?? ""} />
+            <VisitForm key={`v-${inRoom.id}`} appointmentId={inRoom.id} notes={current?.doctor_notes ?? ""} diagnosis={current?.diagnosis ?? ""} voiceLocked={!plan.pro ? getProWords(lang).voiceLocked : null} />
           </section>
 
           <section className="card">

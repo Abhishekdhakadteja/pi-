@@ -26,6 +26,11 @@ export const UNIT_COST = {
   callMinute: 3.5, // Exotel/Twilio minute + AI voice
   videoMinute: 1,
   infraPerClinic: 250, // share of Supabase Pro + Netlify per clinic per month
+  // Pro Max hardware kit, given free: 1 ESP32 (~₹550) + charger/case (~₹400) + 2 BLE tags
+  // (~₹1,200 each, upper estimate) + setup visit/shipping (~₹650) ≈ ₹4,000, spread over 12 months.
+  maxKitPerMonth: 335,
+  // smartwatch health report: Health Connect is free; storage/sync share per clinic
+  healthReport: 50,
 } as const;
 
 export type Quota = {
@@ -80,9 +85,9 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "pro_max",
     name: "Clinic Easy Pro Max",
     doctors: 3,
-    mrpMonth: 9999,
-    month: 5999,
-    year: 59999,
+    mrpMonth: 15999,
+    month: 9999,
+    year: 99999,
     firstMonth: null,
     quota: { messages: 2000, aiSummaries: 400, voiceRx: 400, reportReads: 120, callMinutes: 120, videoMinutes: 240 },
     trialDays: PRO_TRIAL_DAYS,
@@ -96,8 +101,14 @@ export const TOP_UPS = [
   { id: "doctor", hi: "एक और डॉक्टर (Pro)", en: "One more doctor (Pro)", price: 1499 },
 ] as const;
 
-/** Every paid AI service and connection needs Pro. The 7 agents ("free" kind) stay in every plan. */
+/**
+ * Everything AI and every automation needs Pro (decision 2026-11-19). Basic is the plain clinic
+ * software for trying Clinic Easy out: booking, queue, 1-tap reminders, prescription, accounts.
+ * So a Basic clinic costs us ₹0 in AI: no Claude call can run for it (see lib/ai-guard.ts).
+ */
 export const PRO_SERVICES: IntegrationId[] = [
+  "auto_brief",
+  "voice_typing",
   "claude",
   "msg91",
   "wa_cloud",
@@ -107,11 +118,40 @@ export const PRO_SERVICES: IntegrationId[] = [
   "video",
   "location",
   "attendance",
+  "staff_tracking",
+  "smartwatch",
   "abha",
   "razorpay",
 ];
 export function isProService(id: IntegrationId): boolean {
   return PRO_SERVICES.includes(id);
+}
+
+/**
+ * Pro Max only (decision 2026-11-19): the hardware tier. ESP32 staff tracking and the doctor's
+ * live heart/health report. A Pro trial does NOT unlock these; only a paid Pro Max does.
+ */
+export const MAX_SERVICES: IntegrationId[] = ["staff_tracking", "smartwatch"];
+export function isMaxService(id: IntegrationId): boolean {
+  return MAX_SERVICES.includes(id);
+}
+/** Which plan a service needs, for the lock badge. */
+export function requiredPlan(id: IntegrationId): PlanId {
+  return isMaxService(id) ? "pro_max" : isProService(id) ? "pro" : "basic";
+}
+/** Can this clinic use the service right now? */
+export function canUse(id: IntegrationId, state: Pick<PlanState, "tier" | "pro">): boolean {
+  const need = requiredPlan(id);
+  return need === "basic" || (need === "pro" ? state.pro : state.tier === "pro_max");
+}
+/** Is the clinic on Pro Max right now (paid, not a trial)? */
+export function maxAllowed(state: Pick<PlanState, "tier">): boolean {
+  return state.tier === "pro_max";
+}
+
+/** Can this clinic use AI right now? Only Pro, Pro Max or a running Pro trial. */
+export function aiAllowed(state: Pick<PlanState, "pro">): boolean {
+  return state.pro === true;
 }
 
 export const pctOff = (mrp: number, price: number) => Math.round((1 - price / mrp) * 100);
@@ -142,7 +182,8 @@ export function monthlyCost(plan: PaidPlanId, usage = 1): number {
     q.reportReads * UNIT_COST.reportRead +
     q.callMinutes * UNIT_COST.callMinute +
     q.videoMinutes * UNIT_COST.videoMinute;
-  return Math.round(UNIT_COST.infraPerClinic + services * usage);
+  const hardware = plan === "pro_max" ? UNIT_COST.maxKitPerMonth + UNIT_COST.healthReport : 0;
+  return Math.round(UNIT_COST.infraPerClinic + hardware + services * usage);
 }
 
 /** Profit per clinic per month at a given monthly revenue (GST excluded: it goes to the government). */

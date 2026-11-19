@@ -6,7 +6,7 @@ import type { PlanId } from "./plans";
 const hi = {
   heroKicker: "लॉन्च ऑफ़र · सीमित समय",
   heroTitle: "अपने क्लिनिक को AI ऑटो-पायलट पर डालें",
-  heroSub: "7 AI एजेंट हर प्लान में। Pro में ऑटो SMS, ऑटो WhatsApp, AI कॉलिंग, बोलकर पर्ची, कैमरा से रिपोर्ट, वीडियो कंसल्ट और बहुत कुछ।",
+  heroSub: "Basic में पूरा क्लिनिक सॉफ़्टवेयर आज़माएँ। Pro में पूरा AI और ऑटोमेशन: AI मैनेजर, AI सारांश, ऑटो SMS/WhatsApp, स्टाफ ट्रैकिंग और बहुत कुछ।",
   offerEnds: (d: string) => `लॉन्च कीमतें ${d} तक`,
   monthly: "महीने का",
   yearly: "साल का",
@@ -22,8 +22,8 @@ const hi = {
   doctors: (n: number) => (n === 1 ? "1 डॉक्टर" : `${n} डॉक्टर तक`),
   trialBasic: "30 दिन मुफ़्त",
   trialPro: "14 दिन Pro मुफ़्त ट्रायल",
-  planTag: { basic: "शुरुआत के लिए", pro: "अकेले डॉक्टर के लिए", pro_max: "बड़े / 2-3 डॉक्टर वाले क्लिनिक" } as Record<PlanId, string>,
-  basicIncludes: "7 AI एजेंट, हमेशा",
+  planTag: { basic: "बिना AI, सॉफ़्टवेयर आज़माने के लिए", pro: "AI मैनेजर + पूरा AI ऑटोमेशन", pro_max: "AI + हार्डवेयर: स्टाफ ट्रैकिंग, डॉक्टर हेल्थ" } as Record<PlanId, string>,
+  basicIncludes: "क्लिनिक चलाने के 5 टूल, हमेशा",
   proIncludes: "Basic का सब कुछ, और:",
   quotaTitle: "हर महीने शामिल (फ़ेयर यूज़)",
   q: {
@@ -34,7 +34,7 @@ const hi = {
     callMinutes: (n: number) => `${n} मिनट AI कॉल`,
     videoMinutes: (n: number) => `${n} मिनट वीडियो कंसल्ट`,
   },
-  proMaxExtra: ["दोगुनी लिमिट", "3 डॉक्टर लॉगिन", "क्लिनिक का अपना WhatsApp नंबर हम सेट करेंगे", "प्राथमिकता सपोर्ट"],
+  proMaxExtra: ["ESP32 स्टाफ ट्रैकिंग (हाज़िरी अपने-आप, Beta)", "डॉक्टर लाइव हेल्थ रिपोर्ट (स्मार्टवॉच, वेलनेस, जल्द)", "हार्डवेयर मुफ़्त: 1 ESP32 + 2 स्टाफ टैग (हम लगाकर देंगे)", "दोगुनी लिमिट", "3 डॉक्टर लॉगिन", "क्लिनिक का अपना WhatsApp नंबर हम सेट करेंगे", "प्राथमिकता सपोर्ट"],
   ctaTrial: "14 दिन Pro मुफ़्त शुरू करें",
   ctaBuy: "अभी Pro लें",
   ctaBuyMax: "Pro Max लें",
@@ -63,9 +63,13 @@ const hi = {
   unlockTitle: "Clinic Easy Pro से अनलॉक करें",
   unlockSub: "ये सभी AI सेवाएँ और कनेक्शन Pro में। 14 दिन मुफ़्त आज़माएँ।",
   unlock: "Pro अनलॉक करें",
+  unlockMax: "Pro Max लें",
   seePlans: "प्लान देखें",
   proOnly: "Pro",
   aiProOnly: "AI पेशेंट सारांश Pro में। अनलॉक करें →",
+  briefLocked: "AI ब्रीफ़ Pro में: किसकी दवा खत्म, किसका follow-up, आज क्या करना है।",
+  voiceLocked: "बोलकर नोट्स Pro में",
+  agentLocked: "Pro",
   history: "भुगतान",
 };
 
@@ -74,7 +78,7 @@ type ProWords = typeof hi;
 const en: ProWords = {
   heroKicker: "Launch offer · limited time",
   heroTitle: "Put your clinic on AI autopilot",
-  heroSub: "7 AI agents in every plan. Pro adds auto SMS, auto WhatsApp, AI calling, voice prescriptions, camera-read reports, video consults and more.",
+  heroSub: "Try the full clinic software on Basic. Pro adds all the AI and automation: AI Manager, AI summary, auto SMS/WhatsApp, staff tracking and more.",
   offerEnds: (d: string) => `Launch prices until ${d}`,
   monthly: "Monthly",
   yearly: "Yearly",
@@ -90,8 +94,8 @@ const en: ProWords = {
   doctors: (n: number) => (n === 1 ? "1 doctor" : `Up to ${n} doctors`),
   trialBasic: "30 days free",
   trialPro: "14-day free Pro trial",
-  planTag: { basic: "To get started", pro: "For a solo doctor", pro_max: "Busy / 2-3 doctor clinics" },
-  basicIncludes: "7 AI agents, always",
+  planTag: { basic: "No AI, to try the software", pro: "AI Manager + all AI automation", pro_max: "AI + hardware: staff tracking, doctor health" },
+  basicIncludes: "5 tools to run the clinic, always",
   proIncludes: "Everything in Basic, plus:",
   quotaTitle: "Included every month (fair use)",
   q: {
@@ -102,7 +106,7 @@ const en: ProWords = {
     callMinutes: (n: number) => `${n} min AI calls`,
     videoMinutes: (n: number) => `${n} min video consults`,
   },
-  proMaxExtra: ["Double the limits", "3 doctor logins", "We set up the clinic's own WhatsApp number", "Priority support"],
+  proMaxExtra: ["ESP32 staff tracking (automatic attendance, Beta)", "Doctor live health report (smartwatch, wellness, soon)", "Hardware free: 1 ESP32 + 2 staff tags (we install it)", "Double the limits", "3 doctor logins", "We set up the clinic's own WhatsApp number", "Priority support"],
   ctaTrial: "Start 14-day free Pro",
   ctaBuy: "Get Pro now",
   ctaBuyMax: "Get Pro Max",
@@ -130,9 +134,13 @@ const en: ProWords = {
   unlockTitle: "Unlock with Clinic Easy Pro",
   unlockSub: "All these AI services and connections come with Pro. Try it free for 14 days.",
   unlock: "Unlock Pro",
+  unlockMax: "Get Pro Max",
   seePlans: "See plans",
   proOnly: "Pro",
   aiProOnly: "AI patient summary is in Pro. Unlock →",
+  briefLocked: "The AI brief is in Pro: whose medicine is ending, who is due, what to do today.",
+  voiceLocked: "Voice notes are in Pro",
+  agentLocked: "Pro",
   history: "Payments",
 };
 
@@ -144,6 +152,8 @@ export type { ProWords };
 /** The paid services listed on the Pro card, in order. */
 export const PRO_FEATURES: Record<Lang, string[]> = {
   hi: [
+    "आज की AI ब्रीफ़",
+    "बोलकर नोट्स",
     "AI मैनेजर + पेशेंट सारांश (Claude)",
     "ऑटो SMS रिमाइंडर",
     "ऑटो WhatsApp",
@@ -157,6 +167,8 @@ export const PRO_FEATURES: Record<Lang, string[]> = {
     "ऑनलाइन फ़ीस",
   ],
   en: [
+    "Today's AI brief",
+    "Voice notes",
     "AI Manager + patient summary (Claude)",
     "Auto SMS reminders",
     "Auto WhatsApp",
@@ -172,8 +184,8 @@ export const PRO_FEATURES: Record<Lang, string[]> = {
 };
 
 export const BASIC_FEATURES: Record<Lang, string[]> = {
-  hi: ["बुकिंग एजेंट (QR / लिंक)", "लाइव कतार एजेंट", "रिमाइंडर एजेंट (1-टैप WhatsApp)", "पर्ची एजेंट", "हिसाब एजेंट + UPI QR", "ऑटो ब्रीफ़", "बोलकर नोट्स"],
-  en: ["Booking agent (QR / link)", "Live queue agent", "Reminder agent (1-tap WhatsApp)", "Prescription agent", "Accounts agent + UPI QR", "Auto brief", "Voice notes"],
+  hi: ["ऑनलाइन बुकिंग (QR / लिंक)", "लाइव कतार", "रिमाइंडर (1-टैप WhatsApp)", "डिजिटल पर्ची", "हिसाब + UPI QR"],
+  en: ["Online booking (QR / link)", "Live queue", "Reminders (1-tap WhatsApp)", "Digital prescription", "Accounts + UPI QR"],
 };
 
 export function rupees(n: number): string {

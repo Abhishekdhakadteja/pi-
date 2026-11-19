@@ -7,7 +7,7 @@ import { formatDate } from "@/lib/dates";
 import type { ErrorCode } from "@/lib/i18n";
 import { VoiceButton } from "@/components/os/VoiceButton";
 
-export function VisitForm({ appointmentId, notes, diagnosis }: { appointmentId: string; notes: string; diagnosis: string }) {
+export function VisitForm({ appointmentId, notes, diagnosis, voiceLocked = null }: { appointmentId: string; notes: string; diagnosis: string; voiceLocked?: string | null }) {
   const { t } = useT();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<"saved" | ErrorCode | null>(null);
@@ -25,7 +25,7 @@ export function VisitForm({ appointmentId, notes, diagnosis }: { appointmentId: 
     >
       <div className="flex items-center justify-between gap-2">
         <label className="label mb-0" htmlFor="notes">{t("todaysNotes")}</label>
-        <VoiceButton target="notes" />
+        <VoiceButton target="notes" locked={voiceLocked} />
       </div>
       <textarea id="notes" name="notes" className="input min-h-32 py-3 text-lg" defaultValue={notes} maxLength={8000} />
       <label className="label" htmlFor="diagnosis">{t("diagnosis")}</label>

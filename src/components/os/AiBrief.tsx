@@ -5,6 +5,9 @@ import { loadDay } from "@/lib/command-center";
 import { buildInsights } from "@/lib/ai-brief";
 import { getOsWords } from "@/lib/os-content";
 import { rupees } from "@/lib/money";
+import { getPlanState } from "@/lib/subscription";
+import { aiAllowed } from "@/lib/plans";
+import { getProWords } from "@/lib/pro-content";
 
 const TONE = {
   info: "border-cyan-400/25 bg-cyan-400/[0.06] text-cyan-50",
@@ -19,7 +22,9 @@ const DOT = { info: "bg-cyan-300", warn: "bg-amber-300", ok: "bg-emerald-300" } 
  */
 export async function AiBrief({ staff, lang, compact = false, hideStats = false }: { staff: Staff; lang: Lang; compact?: boolean; hideStats?: boolean }) {
   const w = getOsWords(lang);
-  const d = await loadDay(staff);
+  const [d, plan] = await Promise.all([loadDay(staff), getPlanState(staff.clinic_id)]);
+  // Basic shows today's plain numbers only; what the AI noticed (and what to do) is Pro.
+  const ai = aiAllowed(plan);
   const canMoney = staff.role !== "attender";
   const insights = buildInsights(d, w, canMoney);
   const total = d.statuses.length;
@@ -61,6 +66,17 @@ export async function AiBrief({ staff, lang, compact = false, hideStats = false 
         </div>
         )}
 
+        {!ai && (
+          <Link
+            href="/pro"
+            className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-amber-300/30 bg-amber-300/[0.07] px-3 py-2.5 text-[15px] leading-snug text-amber-50"
+            data-testid="ai-brief-locked"
+          >
+            <span>🔒 {getProWords(lang).briefLocked}</span>
+            <span className="shrink-0 font-bold text-amber-200">Pro →</span>
+          </Link>
+        )}
+        {ai && (<>
         <div className="mt-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{w.insightsTitle}</div>
         <ul className="mt-1.5 flex flex-col gap-2" data-testid="ai-insights">
           {shown.map((i, n) => {
@@ -84,6 +100,7 @@ export async function AiBrief({ staff, lang, compact = false, hideStats = false 
             );
           })}
         </ul>
+        </>)}
         {compact && (
           <Link href="/ai" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-cyan-300">
             {w.openCenter} →

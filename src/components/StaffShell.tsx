@@ -36,6 +36,7 @@ const NAV: Record<Staff["role"], { href: string; key: DictKey; icon: NavItem["ic
     { href: "/money", key: "money", icon: "money" },
     { href: "/messages", key: "messages", icon: "messages" },
     { href: "/admin/staff", key: "staffNav", icon: "staff" },
+    { href: "/admin/tracking", key: "trackingNav", icon: "staff" },
     { href: "/reports", key: "reports", icon: "reports" },
     { href: "/pro", key: "proNav", icon: "pro" },
   ],

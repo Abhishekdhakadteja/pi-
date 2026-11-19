@@ -29,10 +29,10 @@ export async function summarizePatient(record: PatientRecord, lang: Lang): Promi
   const client = new Anthropic({ timeout: 45_000, maxRetries: 1 });
   const language = lang === "hi" ? "Write in simple Hindi (Devanagari), keeping medicine names in English." : "Write in simple English.";
   const response = await client.beta.messages.create({
-    model: "claude-opus-5-5",
+    // Haiku 5.5: the summary only restates recorded facts, so the cheapest model is enough
+    // (about ₹0.04 per summary vs ₹1.80 on Opus). Haiku has no server-side refusal fallback.
+    model: "claude-haiku-5-5",
     max_tokens: 4000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
     output_config: { effort: "low" },
     system: `${SYSTEM}\n${language}`,
     messages: [{ role: "user", content: `Patient record (JSON):\n${JSON.stringify(record)}` }],

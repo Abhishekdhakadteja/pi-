@@ -28,7 +28,7 @@ export function appendSpoken(current: string, spoken: string): string {
  * "Speak" button (Beta): fills the field with id `target` from the doctor's voice, in Hindi or
  * English, using the browser's free speech service. Hidden where the browser has none.
  */
-export function VoiceButton({ target }: { target: string }) {
+export function VoiceButton({ target, locked = null }: { target: string; /** Basic: show a Pro link instead */ locked?: string | null }) {
   const { lang } = useT();
   const w = getOsWords(lang);
   const [supported, setSupported] = useState(false);
@@ -42,6 +42,12 @@ export function VoiceButton({ target }: { target: string }) {
   }, []);
 
   if (!supported) return null;
+  if (locked)
+    return (
+      <a href="/pro" className="rounded-full border border-amber-300/40 bg-amber-300/10 px-3 py-1 text-xs font-bold text-amber-200" data-testid="voice-locked">
+        🔒 {locked}
+      </a>
+    );
 
   function toggle() {
     if (on) {
