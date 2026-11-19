@@ -12,7 +12,8 @@ import { runTool, ToolInputError } from "./tools";
 export type Turn = { role: "user" | "assistant"; text: string };
 export type ManagerAnswer = { text: string; tools: string[] };
 
-const MODEL = "claude-opus-5-5";
+// Sonnet 5.5: reliable multi-step tool use at half of Opus's price (about ₹3.30 a question vs ₹6.60).
+const MODEL = "claude-sonnet-5-5";
 /** Netlify functions are cut off after ~26 s; past this point we stop calling tools and answer. */
 const SOFT_DEADLINE_MS = 17_000;
 

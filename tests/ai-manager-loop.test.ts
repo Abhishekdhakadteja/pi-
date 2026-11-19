@@ -66,7 +66,7 @@ describe("AI मैनेजर loop", () => {
     await askManager(staff, [], "hi", "hi");
     const names = (requests[0].tools as { name: string }[]).map((t) => t.name);
     expect(names).toEqual(["clinic_today", "list_appointments", "find_patients"]);
-    expect(requests[0].model).toBe("claude-opus-5-5");
+    expect(requests[0].model).toBe("claude-sonnet-5-5");
   });
 
   it("stops calling tools after the round limit and forces an answer", async () => {
