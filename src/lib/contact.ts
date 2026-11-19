@@ -8,9 +8,12 @@ export type TeamRole = "sales" | "tech";
 type TeamSeed = { role: TeamRole; name: string; phone: string; email: string };
 
 const TEAM: TeamSeed[] = [
-  { role: "sales", name: "", phone: "", email: "" },
-  { role: "tech", name: "", phone: "", email: "" },
+  { role: "sales", name: "Abhishek Dhakad", phone: "9340346510", email: "mahakall070@gmail.com" },
+  { role: "tech", name: "Aniket Dhakad", phone: "6260207359", email: "aniketdhakad181@gmail.com" },
 ];
+
+/** The company behind Clinic Easy. */
+export const COMPANY = { hi: "तेजा अन्ना ग्रुप · तेजा अन्ना ऑटोमेशन", en: "Teja Anna Group · Teja Anna Automation" } as const;
 
 /** Shown under the contact cards with the Indian flag. No city or address, by the founders' choice. */
 export const HUB = { hi: "भारत", en: "भारत" } as const;

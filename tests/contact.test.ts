@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HUB, cleanPhone, getTeam } from "@/lib/contact";
+import { COMPANY, HUB, cleanPhone, getTeam } from "@/lib/contact";
 
 describe("founder contact", () => {
   it("cleans Indian phone numbers", () => {
@@ -29,5 +29,14 @@ describe("founder contact", () => {
   it("shows only भारत, no city or address", () => {
     expect(HUB.hi).toBe("भारत");
     expect(HUB.en).toBe("भारत");
+  });
+
+  it("has both founders filled in", () => {
+    const team = getTeam();
+    expect(team.map((t) => [t.role, t.name, t.display, t.email])).toEqual([
+      ["sales", "Abhishek Dhakad", "+91 93403 46510", "mahakall070@gmail.com"],
+      ["tech", "Aniket Dhakad", "+91 62602 07359", "aniketdhakad181@gmail.com"],
+    ]);
+    expect(COMPANY.en).toBe("Teja Anna Group · Teja Anna Automation");
   });
 });

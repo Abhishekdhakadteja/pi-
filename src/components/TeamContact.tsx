@@ -1,5 +1,5 @@
 import type { Lang } from "@/lib/i18n";
-import { HUB, getTeam, type TeamMember } from "@/lib/contact";
+import { COMPANY, HUB, getTeam, type TeamMember } from "@/lib/contact";
 
 const WORDS = {
   hi: {
@@ -145,7 +145,8 @@ export function TeamContact({ lang, heading = true }: { lang: Lang; heading?: bo
       ) : (
         <p className="relative mt-6 text-base text-slate-400">{w.soon}</p>
       )}
-      <p className="relative mt-6 flex justify-center text-base">
+      <p className="relative mt-6 text-sm font-semibold tracking-wide text-slate-300">{COMPANY[lang]}</p>
+      <p className="relative mt-2 flex justify-center text-base">
         <HubLine lang={lang} />
       </p>
     </div>
