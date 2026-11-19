@@ -6,12 +6,15 @@ import { BrandMark, BrandName } from "@/components/BrandMark";
 import { LandingIcon } from "@/components/LandingIcon";
 import { HubLine, TeamContact } from "@/components/TeamContact";
 import { ProBadge } from "@/components/ProBadge";
+import { PricingPlans } from "@/components/pro/PricingPlans";
+import { getProWords } from "@/lib/pro-content";
 
 // Public front page: the first thing a doctor sees. Dark, "AI clinic OS" look.
 // Pure server HTML + CSS animations (no client JS) so it stays fast on cheap phones.
 export default async function Home() {
   const lang = await getLang();
   const c = getLanding(lang);
+  const pw = getProWords(lang);
 
   return (
     <main className="landing relative min-h-screen overflow-hidden bg-[#030712] text-slate-200">
@@ -178,7 +181,21 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* contact: founders (Sales, Technical) + main hub */}
+        {/* plans: same cards as /pricing, right under the login button */}
+        {/* "os" gives the plan cards the same dark theme as /pricing; bg-transparent keeps the landing background */}
+        <section id="plans" className="os scroll-mt-6 !bg-transparent pb-14">
+          <div className="flex flex-col items-center pb-8 text-center">
+            <ProBadge size="lg" />
+            <span className="mt-5 text-sm font-semibold tracking-wide text-pink-200">{pw.heroKicker}</span>
+            <h2 className="mt-2 max-w-2xl text-3xl font-bold md:text-4xl">
+              <span className="os-gradient-text">{pw.heroTitle}</span>
+            </h2>
+            <p className="mt-3 max-w-2xl text-lg text-slate-300">{pw.heroSub}</p>
+          </div>
+          <PricingPlans lang={lang} ctx={{ mode: "public" }} />
+        </section>
+
+        {/* contact: founders (Sales, Technical), company, flag: always the last thing on the page */}
         <section id="contact" className="pb-14">
           <TeamContact lang={lang} />
         </section>

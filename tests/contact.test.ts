@@ -40,3 +40,17 @@ describe("founder contact", () => {
     expect(COMPANY.en).toBe("Teja Anna Group · Teja Anna Automation");
   });
 });
+
+describe("home page order", () => {
+  it("login, then plans, then contact as the last section", async () => {
+    const { readFileSync } = await import("node:fs");
+    const src = readFileSync("src/app/page.tsx", "utf8");
+    const login = src.lastIndexOf('href="/login"');
+    const plans = src.indexOf("<PricingPlans");
+    const contact = src.indexOf("<TeamContact");
+    expect(login).toBeGreaterThan(0);
+    expect(plans).toBeGreaterThan(login);
+    expect(contact).toBeGreaterThan(plans);
+    expect(src.indexOf("<section", contact)).toBe(-1);
+  });
+});
