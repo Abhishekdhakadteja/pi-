@@ -1,0 +1,77 @@
+# Free daily backup of the Supabase database (needed while we stay on the Supabase Free plan,
+# which has no automatic backups). Runs twice a day, encrypts the dump with BACKUP_PASSPHRASE
+# and keeps it as a workflow artifact for 30 days. Each run also counts as database activity,
+# so the free project is never paused for inactivity. Restore steps: docs/BACKUP.md.
+#
+# Repository secrets (Settings -> Secrets and variables -> Actions):
+#   SUPABASE_DB_URL    Session pooler connection string (port 5432), from Supabase -> Connect
+#   BACKUP_PASSPHRASE  A long random password. Keep a copy outside GitHub: without it a backup can't be opened.
+name: Database backup
+
+on:
+  schedule:
+    - cron: "30 8 * * *"   # 2:00 PM IST
+    - cron: "30 17 * * *"  # 11:00 PM IST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check secrets
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::error::Add SUPABASE_DB_URL and BACKUP_PASSPHRASE in repository secrets (see docs/BACKUP.md)."
+            exit 1
+          fi
+          if [ ${#BACKUP_PASSPHRASE} -lt 20 ]; then
+            echo "::error::BACKUP_PASSPHRASE must be at least 20 characters."
+            exit 1
+          fi
+
+      - name: Dump database
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          stamp=$(TZ=Asia/Kolkata date +%Y-%m-%d_%H%M)
+          echo "STAMP=$stamp" >> "$GITHUB_ENV"
+          # pg_dump must match the server's major version (Postgres 17).
+          docker run --rm --network host -e DB_URL="$SUPABASE_DB_URL" -v "$PWD/out:/out" postgres:17 \
+            bash -c 'set -e
+              pg_dump "$DB_URL" -Fc --no-owner --no-privileges -n public -f /out/public.dump
+              pg_dump "$DB_URL" -Fc --no-owner --no-privileges --data-only -t auth.users -t auth.identities -f /out/auth.dump
+              pg_restore -l /out/public.dump > /dev/null
+              pg_restore -l /out/auth.dump > /dev/null'
+          ls -la out
+
+      - name: Encrypt
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          tar -C out -czf "backup-$STAMP.tar.gz" public.dump auth.dump
+          gpg --batch --yes --pinentry-mode loopback --symmetric --cipher-algo AES256 \
+            --passphrase-fd 0 -o "backup-$STAMP.tar.gz.gpg" "backup-$STAMP.tar.gz" <<< "$BACKUP_PASSPHRASE"
+          rm -rf out "backup-$STAMP.tar.gz"
+          ls -la "backup-$STAMP.tar.gz.gpg"
+
+      - name: Keep for 30 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: clinic-easy-db-${{ env.STAMP }}
+          path: backup-*.tar.gz.gpg
+          retention-days: 30
+          if-no-files-found: error
