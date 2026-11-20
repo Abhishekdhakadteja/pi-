@@ -11,6 +11,7 @@ Supabase → प्रोजेक्ट "clinicease" → SQL Editor → New que
 |---|---|
 | `supabase/migrations/20261111*` से `20261118000001_pro_subscription.sql` तक | पहले ही चल चुकी हैं (19 नवंबर की जाँच) |
 | `supabase/migrations/20261119000001_pro_automation.sql` | **हाँ, अब चलाएँ** (दो बार चलाने से भी कुछ नहीं बिगड़ता) |
+| `supabase/migrations/20261120000001_public_doctor_directory.sql` | **हाँ** (आम लोगों की डॉक्टर लिस्ट: शहर, विशेषज्ञता, "लिस्ट में दिखाएं") |
 
 यह SQL तीन नई टेबल (स्टाफ ट्रैकिंग) और `clinics.ai_knowledge` कॉलम जोड़ती है। Basic इनके बिना भी चलता है, पर merge से पहले चला लें।
 
@@ -43,6 +44,7 @@ Netlify → clinicease-demo → Site configuration → Environment variables।
 | `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_TEMPLATE` | ऑटो WhatsApp (Pro) | 1-टैप WhatsApp चलता रहेगा |
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | ऑनलाइन पेमेंट से Pro खरीदना | "WhatsApp पर Pro लें" बटन; आप /owner से Pro चालू करते हैं |
 | `DEMO_OTP` | सिर्फ़ टेस्टिंग | production में अपने-आप बंद |
+| `GOOGLE_PLACES_API_KEY` | /health/doctors पर शहर के बाकी डॉक्टरों की लाइव लिस्ट (Google Places API New) | मुफ़्त "Google Maps में खोलें" बटन दिखता है |
 
 > **ध्यान:** `ANTHROPIC_API_KEY` लगी है तो Basic पर ₹0 खर्च है, पर कोई भी Basic क्लिनिक 14 दिन का मुफ़्त Pro ट्रायल शुरू कर सकता है और ट्रायल में AI चलेगा। इसलिए console.anthropic.com → Limits में **$10/महीना की spend limit** ज़रूर लगाएँ।
 
@@ -83,3 +85,27 @@ GitHub → repo → Settings → Secrets and variables → Actions → New repos
 | सब | Netlify Personal ($9) | तीसरे क्लिनिक से पहले |
 | Pro Max | ESP32 + 2 टैग + लगाना | ~₹4,000 एक बार प्रति क्लिनिक |
 | Pro Max | हेल्थ रिपोर्ट के लिए Android ऐप (Play Console) | $25 एक बार |
+
+## 7. आम लोगों वाला हिस्सा (/health): डॉक्टर खोजें + मेरा दिन
+
+- `/health/doctors`: बीमारी लिखें → सही विशेषज्ञ (डायग्नोसिस नहीं) → (1) Clinic Easy क्लिनिक जो "लिस्ट में दिखाएं" चुनते हैं, ऑनलाइन बुकिंग के साथ, (2) Google Places से शहर के बाकी डॉक्टर, (3) हमेशा मुफ़्त Google Maps बटन। इमरजेंसी शब्द (सीने में तेज दर्द, बेहोश...) पर 108 बटन।
+- `/health/routine`: मुफ़्त नियम-आधारित दिनचर्या, फोन में ही सेव, कैलेंडर (.ics) रिमाइंडर। "AI के साथ" मोड अभी "जल्द" है।
+- क्लिनिक admin: Settings → "आम लोगों की डॉक्टर लिस्ट में दिखें"।
+
+### Google Places key (वैकल्पिक, बिलिंग कार्ड चाहिए)
+1. console.cloud.google.com → नया प्रोजेक्ट → Billing जोड़ें → "Places API (New)" Enable करें।
+2. Credentials → API key → Restrict: सिर्फ़ "Places API (New)"।
+3. **Quotas** में Text Search और Place Details की रोज़ की सीमा लगाएँ (जैसे 150/दिन और 30/दिन) ताकि बिल मुफ़्त सीमा से ऊपर न जाए। Budgets & alerts में ₹100 का alert भी लगाएँ।
+4. Netlify में `GOOGLE_PLACES_API_KEY` डालें → Trigger deploy।
+
+खर्च का डिज़ाइन: लिस्ट में सिर्फ़ नाम/पता/Maps लिंक (Text Search Pro, हर महीने मुफ़्त कोटा), फोन नंबर सिर्फ़ तब लिया जाता है जब कोई "नंबर देखें" दबाए (Enterprise field)। Google की शर्तों के कारण यह डेटा हमारे डेटाबेस में सेव नहीं होता।
+
+## 8. मरीज़ों का Health Pro (₹499/महीना)
+
+- Basic (मुफ़्त): डॉक्टर खोजें, मेरा दिन, इमरजेंसी 108।
+- Pro (`/health/pro`, ऐप `/health/my`): दवा ट्रैकर + खत्म होने का अलर्ट, BP/शुगर/SpO2/पल्स/बुखार/वजन रिकॉर्ड और खतरे का संकेत, 6 सदस्यों का परिवार, SOS (108 + WhatsApp लोकेशन), इमरजेंसी कार्ड, डॉक्टर रिपोर्ट (प्रिंट/PDF/WhatsApp), विज़िट और लक्षण डायरी, बैकअप फ़ाइल।
+- डेटा सिर्फ़ मरीज़ के फोन में (localStorage), हमारे सर्वर पर नहीं। इसलिए कोई नया SQL या key नहीं चाहिए, खर्च लगभग ₹0।
+- 7 दिन का मुफ़्त ट्रायल एक फोन पर एक बार।
+- पेमेंट के बाद: `/owner` → "मरीज़ Health Pro चालू करें" → मोबाइल + महीने → लिंक WhatsApp पर भेजें। लिंक `PATIENT_SESSION_SECRET` से साइन होता है, बदला नहीं जा सकता।
+- सीमा: लिंक दूसरा व्यक्ति भी खोल सकता है (कोड शेयर होने का खतरा)। बाद में मरीज़ लॉगिन (OTP) आने पर कोड एक फोन नंबर से बँध जाएगा।
+- Play Store ऐप (TWA) में डिजिटल सब्सक्रिप्शन बेचने के लिए Google Play Billing का नियम लागू हो सकता है; वेबसाइट से UPI पर बेचना ठीक है।

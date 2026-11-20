@@ -294,3 +294,65 @@ body {
 @media print {
   .os { background: white; color: black; }
 }
+
+/* ---------- Public "Clinic Easy Health" side (/health) ---------- */
+.health .health-input {
+  width: 100%;
+  min-height: 3rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(56 189 248 / 0.3);
+  background: #0a1428;
+  color: #e6eefc;
+  padding: 0.65rem 0.9rem;
+  font-size: 1.05rem;
+  outline: none;
+}
+.health .health-input:focus { border-color: #22b8f5; box-shadow: 0 0 0 4px rgb(34 184 245 / 0.18); }
+.health .health-input::placeholder { color: #5f7194; }
+.health .health-btn {
+  min-height: 3rem;
+  border-radius: 1rem;
+  padding: 0.65rem 1.1rem;
+  font-weight: 700;
+  color: #020617;
+  background: linear-gradient(90deg, #22f5d0, #22b8f5);
+  white-space: nowrap;
+}
+.health .health-btn:disabled { opacity: 0.6; }
+.health .health-btn-ghost {
+  min-height: 2.75rem;
+  border-radius: 0.9rem;
+  padding: 0.5rem 0.9rem;
+  font-weight: 600;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  background: rgb(255 255 255 / 0.05);
+  color: #e6eefc;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.health .health-wa { background: #16a34a; border-color: #16a34a; color: #fff; }
+.health .health-card {
+  border-radius: 1.5rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.05);
+  padding: 1.1rem;
+  backdrop-filter: blur(8px);
+}
+.health .health-chip {
+  border-radius: 999px;
+  border: 1px solid rgb(56 189 248 / 0.25);
+  background: #0b1730;
+  color: #c9d6ef;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.95rem;
+}
+.health .health-chip-on { background: linear-gradient(90deg, #14d8b8, #22b8f5); border-color: transparent; color: #020617; font-weight: 700; }
+.health select option { background: #0a1428; color: #e6eefc; }
+
+@media print {
+  .health header, .health nav, .health footer, .health .no-print { display: none !important; }
+  .health, .health .health-card, .health .print-area { background: #fff !important; color: #000 !important; backdrop-filter: none !important; }
+  .health .print-area * { color: #000 !important; border-color: #999 !important; background: transparent !important; }
+  .health .pointer-events-none { display: none !important; }
+}
