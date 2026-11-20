@@ -14,6 +14,7 @@ type Clinic = {
   upi_id: string | null;
   default_fee: number;
   booking_otp: boolean;
+  home_priority: boolean;
 };
 
 export function ClinicForm({ clinic }: { clinic: Clinic }) {
@@ -71,6 +72,10 @@ export function ClinicForm({ clinic }: { clinic: Clinic }) {
       <label className="flex items-center gap-3 text-lg">
         <input type="checkbox" name="booking_otp" defaultChecked={clinic.booking_otp} className="h-6 w-6" />
         {t("bookingOtp")}
+      </label>
+      <label className="flex items-center gap-3 text-lg">
+        <input type="checkbox" name="home_priority" defaultChecked={clinic.home_priority} className="h-6 w-6" />
+        {t("homePriority")}
       </label>
       {msg && <p className={msg === "saved" ? "ok-box" : "error-box"}>{t(msg)}</p>}
       <button className="btn-primary" disabled={pending}>{pending ? t("loading") : t("save")}</button>

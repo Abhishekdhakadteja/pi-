@@ -13,7 +13,7 @@ export function QueueLive({ clinicId, date, token }: { clinicId: string; date: s
   const load = useCallback(async () => {
     const { data, error } = await supabaseBrowser()
       .from("queue_status")
-      .select("now_running, pending_tokens, done_tokens")
+      .select("now_running, pending_tokens, done_tokens, home_tokens")
       .eq("clinic_id", clinicId)
       .eq("date", date)
       .maybeSingle();
@@ -22,7 +22,7 @@ export function QueueLive({ clinicId, date, token }: { clinicId: string; date: s
       return;
     }
     setOnline(true);
-    setQ(data ?? { now_running: null, pending_tokens: [], done_tokens: [] });
+    setQ(data ?? { now_running: null, pending_tokens: [], done_tokens: [], home_tokens: [] });
   }, [clinicId, date]);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export function QueueLive({ clinicId, date, token }: { clinicId: string; date: s
         .channel(`q-${clinicId}-${date}-${Date.now()}`)
         .on("postgres_changes", { event: "*", schema: "public", table: "queue_status", filter: `clinic_id=eq.${clinicId}` }, (payload: { new: unknown }) => {
           const row = payload.new as Q & { date?: string };
-          if (row && row.date === date) setQ({ now_running: row.now_running, pending_tokens: row.pending_tokens ?? [], done_tokens: row.done_tokens ?? [] });
+          if (row && row.date === date) setQ({ now_running: row.now_running, pending_tokens: row.pending_tokens ?? [], done_tokens: row.done_tokens ?? [], home_tokens: row.home_tokens ?? [] });
         })
         .subscribe((status: string) => {
           if (status === "SUBSCRIBED") {
@@ -98,6 +98,11 @@ export function QueueLive({ clinicId, date, token }: { clinicId: string; date: s
       {v.state === "soon" && (
         <p className="rounded-2xl bg-amber-400 p-5 text-center text-2xl font-bold text-slate-900" data-testid="soon">
           {t("turnComing")}
+        </p>
+      )}
+      {v.home && v.state !== "done" && v.state !== "go_in" && (
+        <p className="rounded-2xl bg-teal-50 p-4 text-center text-lg font-semibold text-teal-900 ring-1 ring-teal-200" data-testid="home-note">
+          🏠 {t("homeQueueNote")}
         </p>
       )}
       {v.state === "done" && <p className="ok-box text-center text-2xl">{t("visitDone")}</p>}
