@@ -33,12 +33,15 @@ export default async function HealthLayout({ children }: { children: React.React
             <LangSwitch />
           </span>
         </header>
-        <nav className="mb-5 grid grid-cols-2 gap-2 text-center text-base font-semibold">
-          <Link href="/health/doctors" className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-3 py-3 text-cyan-100">
+        <nav className="mb-5 grid grid-cols-3 gap-2 text-center text-sm font-semibold">
+          <Link href="/health/doctors" className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-2 py-3 text-cyan-100">
             🩺 {w.navDoctors}
           </Link>
-          <Link href="/health/routine" className="rounded-2xl border border-violet-400/30 bg-violet-400/10 px-3 py-3 text-violet-100">
+          <Link href="/health/routine" className="rounded-2xl border border-violet-400/30 bg-violet-400/10 px-2 py-3 text-violet-100">
             🗓️ {w.navRoutine}
+          </Link>
+          <Link href="/health/my" className="rounded-2xl border border-pink-400/40 bg-gradient-to-r from-pink-500/15 to-violet-500/15 px-2 py-3 text-pink-100" data-testid="nav-pro">
+            ✨ {w.navPro}
           </Link>
         </nav>
         {children}

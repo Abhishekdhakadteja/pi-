@@ -349,3 +349,10 @@ body {
 }
 .health .health-chip-on { background: linear-gradient(90deg, #14d8b8, #22b8f5); border-color: transparent; color: #020617; font-weight: 700; }
 .health select option { background: #0a1428; color: #e6eefc; }
+
+@media print {
+  .health header, .health nav, .health footer, .health .no-print { display: none !important; }
+  .health, .health .health-card, .health .print-area { background: #fff !important; color: #000 !important; backdrop-filter: none !important; }
+  .health .print-area * { color: #000 !important; border-color: #999 !important; background: transparent !important; }
+  .health .pointer-events-none { display: none !important; }
+}

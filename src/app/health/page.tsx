@@ -46,17 +46,30 @@ export default async function HealthHome() {
           <p className="text-3xl" aria-hidden>
             🩺
           </p>
-          <h2 className="mt-2 text-xl font-bold text-white">{w.navDoctors}</h2>
+          <h2 className="mt-2 text-xl font-bold text-white">
+            {w.navDoctors} <span className="ml-1 rounded-full bg-emerald-500/20 px-2 py-0.5 align-middle text-xs text-emerald-200">{w.basicFree}</span>
+          </h2>
           <p className="mt-1 text-slate-300">{w.hubDoctorsBody}</p>
         </Link>
         <Link href="/health/routine" className="health-card block hover:border-violet-400/60">
           <p className="text-3xl" aria-hidden>
             🗓️
           </p>
-          <h2 className="mt-2 text-xl font-bold text-white">{w.navRoutine}</h2>
+          <h2 className="mt-2 text-xl font-bold text-white">
+            {w.navRoutine} <span className="ml-1 rounded-full bg-emerald-500/20 px-2 py-0.5 align-middle text-xs text-emerald-200">{w.basicFree}</span>
+          </h2>
           <p className="mt-1 text-slate-300">{w.hubRoutineBody}</p>
         </Link>
       </div>
+
+      <Link
+        href="/health/pro"
+        className="mt-4 block rounded-3xl border border-pink-400/40 bg-gradient-to-br from-pink-500/15 to-violet-600/15 p-5 hover:border-pink-300/70"
+        data-testid="hub-pro"
+      >
+        <p className="text-xl font-bold text-white">✨ {w.hubProTitle}</p>
+        <p className="mt-1 text-slate-200">{w.hubProBody}</p>
+      </Link>
 
       <p className="mt-6 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 p-3 text-center text-sm text-emerald-100">📲 {w.installTip}</p>
     </main>
