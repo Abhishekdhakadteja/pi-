@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState, useTransition } from "react";
 import { PasswordInput } from "@/components/PasswordInput";
-import { createClinic, setClinicActive, setClinicPlan } from "./actions";
+import { approveSignup, createClinic, rejectSignup, setClinicActive, setClinicPlan } from "./actions";
 
 export function NewClinicForm() {
   const ref = useRef<HTMLFormElement>(null);
@@ -158,6 +158,62 @@ export function ClinicPlanForm({ clinicId, label }: { clinicId: string; label: s
         </button>
       </div>
       {msg && <div className="mt-1 text-xs text-amber-900">{msg}</div>}
+    </div>
+  );
+}
+
+export function SignupReview({ clinicId }: { clinicId: string }) {
+  const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<{ message: string; phone: string | null } | null>(null);
+  if (done) {
+    const href = done.phone
+      ? `https://wa.me/91${done.phone}?text=${encodeURIComponent(done.message)}`
+      : `https://wa.me/?text=${encodeURIComponent(done.message)}`;
+    return (
+      <div className="mt-3 flex flex-col gap-2">
+        <p className="ok-box">✓ Account चालू। Doctor को बताएँ:</p>
+        <a className="btn-primary" target="_blank" rel="noopener noreferrer" href={href}>
+          WhatsApp पर बताएँ
+        </a>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-3 flex flex-col gap-2">
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          className="btn-primary"
+          disabled={pending}
+          onClick={() => {
+            setError(null);
+            start(async () => {
+              const r = await approveSignup(clinicId).catch(() => ({ ok: false as const, error: "कुछ गड़बड़ हुई।" }));
+              if (r.ok) setDone({ message: r.message, phone: r.phone });
+              else setError(r.error);
+            });
+          }}
+        >
+          ✓ चालू करें
+        </button>
+        <button
+          type="button"
+          className="btn-secondary"
+          disabled={pending}
+          onClick={() => {
+            if (!window.confirm("यह रजिस्ट्रेशन हमेशा के लिए हटाएँ?")) return;
+            setError(null);
+            start(async () => {
+              const r = await rejectSignup(clinicId).catch(() => ({ ok: false, error: "कुछ गड़बड़ हुई।" }));
+              if (!r.ok) setError(r.error ?? "हटाया नहीं जा सका।");
+            });
+          }}
+        >
+          ✕ हटाएँ
+        </button>
+      </div>
+      {error && <p className="error-box">{error}</p>}
     </div>
   );
 }

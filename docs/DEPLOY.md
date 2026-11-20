@@ -11,6 +11,7 @@ Supabase → प्रोजेक्ट "clinicease" → SQL Editor → New que
 |---|---|
 | `supabase/migrations/20261111*` से `20261118000001_pro_subscription.sql` तक | पहले ही चल चुकी हैं (19 नवंबर की जाँच) |
 | `supabase/migrations/20261119000001_pro_automation.sql` | **हाँ, अब चलाएँ** (दो बार चलाने से भी कुछ नहीं बिगड़ता) |
+| `supabase/migrations/20261120000001_doctor_signup.sql` | **हाँ**, डॉक्टर रजिस्ट्रेशन (`/signup`) वाले PR को merge करने से पहले |
 
 यह SQL तीन नई टेबल (स्टाफ ट्रैकिंग) और `clinics.ai_knowledge` कॉलम जोड़ती है। Basic इनके बिना भी चलता है, पर merge से पहले चला लें।
 
@@ -42,6 +43,7 @@ Netlify → clinicease-demo → Site configuration → Environment variables।
 | `MSG91_AUTH_KEY`, `MSG91_TEMPLATE_ID` | ऑटो SMS (Pro) | 1-टैप WhatsApp चलता रहेगा |
 | `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_TEMPLATE` | ऑटो WhatsApp (Pro) | 1-टैप WhatsApp चलता रहेगा |
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | ऑनलाइन पेमेंट से Pro खरीदना | "WhatsApp पर Pro लें" बटन; आप /owner से Pro चालू करते हैं |
+| `SIGNUP_EMAIL_FROM` + `BREVO_API_KEY` (या `RESEND_API_KEY`) | डॉक्टर रजिस्ट्रेशन का ईमेल OTP (Brevo: 300 ईमेल/दिन मुफ़्त) | टीम WhatsApp पर verify करती है, /owner से चालू |
 | `DEMO_OTP` | सिर्फ़ टेस्टिंग | production में अपने-आप बंद |
 
 > **ध्यान:** `ANTHROPIC_API_KEY` लगी है तो Basic पर ₹0 खर्च है, पर कोई भी Basic क्लिनिक 14 दिन का मुफ़्त Pro ट्रायल शुरू कर सकता है और ट्रायल में AI चलेगा। इसलिए console.anthropic.com → Limits में **$10/महीना की spend limit** ज़रूर लगाएँ।
@@ -66,6 +68,10 @@ GitHub → repo → Settings → Secrets and variables → Actions → New repos
    - एक टेस्ट मरीज़ की बुकिंग करें, कतार चलाएँ, पर्ची बनाएँ, Messages में 1-टैप WhatsApp दबाकर देखें।
 
 ## 5. नया क्लिनिक जोड़ना (Basic)
+
+**डॉक्टर ख़ुद:** `/signup` पर नाम, speciality, clinic, शहर, मोबाइल, ईमेल, password भरता है। OTP की चाबी (ईमेल या MSG91/WhatsApp) लगी हो तो OTP से तुरंत चालू; न लगी हो तो डॉक्टर Ref नंबर के साथ Sales WhatsApp पर message करता है और आप `/owner` → "नए रजिस्ट्रेशन" → **✓ चालू करें** दबाते हैं।
+
+**आप ख़ुद:**
 
 `/owner` (सिर्फ़ `OWNER_EMAILS` वाले ईमेल से) → "New clinic" → डॉक्टर का मोबाइल, एडमिन ईमेल, अटेंडर → बनाएँ।
 क्लिनिक 30 दिन Basic मुफ़्त पर रहता है। पैसे मिलने पर /owner से ही Pro या Pro Max चालू करें।

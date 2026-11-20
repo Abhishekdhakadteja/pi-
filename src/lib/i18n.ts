@@ -28,6 +28,9 @@ const en = {
   login: "Login",
   loginFailed: "Login failed. Check your email/mobile and password.",
   noStaffProfile: "Your account is not linked to any clinic. Ask the clinic admin.",
+  pendingSignup: "Your sign-up is not verified yet. Finish the OTP, or message the Clinic Easy team on WhatsApp.",
+  newDoctor: "New doctor?",
+  signupLink: "Register your clinic, free",
 
   // roles / nav
   attenderDesk: "Attender desk",
@@ -324,6 +327,9 @@ const hi: Dict = {
   login: "लॉगिन",
   loginFailed: "लॉगिन नहीं हुआ। ईमेल/मोबाइल और पासवर्ड जाँचें।",
   noStaffProfile: "आपका अकाउंट किसी क्लिनिक से जुड़ा नहीं है। एडमिन से पूछें।",
+  pendingSignup: "आपका रजिस्ट्रेशन अभी verify नहीं हुआ है। OTP पूरा करें, या Clinic Easy टीम को WhatsApp करें।",
+  newDoctor: "नए डॉक्टर हैं?",
+  signupLink: "अपनी clinic रजिस्टर करें, मुफ़्त",
 
   attenderDesk: "अटेंडर डेस्क",
   todaysList: "आज की लिस्ट",
@@ -619,6 +625,7 @@ export type ErrorCode =
   | "consentRequired"
   | "loginFailed"
   | "noStaffProfile"
+  | "pendingSignup"
   | "err_amount"
   | "err_upi"
   | "err_password"
