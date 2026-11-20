@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getT } from "@/lib/lang-server";
 import { getStaff, ROLE_HOME } from "@/lib/staff";
@@ -6,10 +7,12 @@ import { BrandMark, BrandName } from "@/components/BrandMark";
 import { LoginForm } from "./LoginForm";
 import { SupportContact } from "@/components/SupportContact";
 
-export default async function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   const staff = await getStaff();
   if (staff) redirect(ROLE_HOME[staff.role]);
   const { t, lang } = await getT();
+  const { id } = await searchParams;
+  const initialId = typeof id === "string" && /^[6-9][0-9]{9}$/.test(id) ? id : "";
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col">
       <section className="relative overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-[#050b1a] via-[#0b2545] to-teal-700 px-5 pb-16 pt-6 text-white shadow-xl shadow-teal-950/20">
@@ -28,7 +31,14 @@ export default async function LoginPage() {
         <p className="relative mt-2 text-lg text-teal-50/90">{t("loginSubtitle")}</p>
       </section>
       <div className="relative z-10 -mt-10 px-4 pb-8">
-        <LoginForm />
+        <LoginForm initialId={initialId} />
+        <Link
+          href="/signup"
+          className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 text-base shadow-sm ring-1 ring-teal-100 hover:ring-teal-300"
+        >
+          <span className="text-slate-600">{t("newDoctor")}</span>
+          <span className="font-semibold text-teal-700">{t("signupLink")} →</span>
+        </Link>
         <p className="mt-4 flex items-center justify-center gap-2 text-sm text-slate-500">
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <rect x="4" y="11" width="16" height="10" rx="2" />

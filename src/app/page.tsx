@@ -93,6 +93,12 @@ export default async function Home() {
               {c.ctaDay}
             </a>
           </div>
+          <Link
+            href="/signup"
+            className="btn mt-3 w-full max-w-md border border-emerald-300/40 bg-emerald-400/10 text-emerald-100 hover:bg-emerald-400/20 sm:max-w-lg"
+          >
+            {lang === "hi" ? "🩺 नए डॉक्टर? अपनी clinic रजिस्टर करें (मुफ़्त)" : "🩺 New doctor? Register your clinic (free)"}
+          </Link>
           <Link href="/pricing" className="mt-4 text-sm font-semibold text-amber-200 underline decoration-amber-300/50 underline-offset-4 hover:text-amber-100">
             {lang === "hi" ? "✦ Clinic Easy Pro: लॉन्च ऑफ़र, 90% तक छूट →" : "✦ Clinic Easy Pro: launch offer, up to 90% off →"}
           </Link>
@@ -177,6 +183,9 @@ export default async function Home() {
               className="btn relative mx-auto mt-7 max-w-sm bg-gradient-to-r from-[#14d8b8] via-[#22B8F5] to-[#7c5cf6] text-[#020617] shadow-[0_0_40px_-8px_rgba(34,184,245,0.7)] hover:brightness-110"
             >
               {c.ctaLogin} →
+            </Link>
+            <Link href="/signup" className="relative mt-4 inline-block text-base font-semibold text-emerald-200 underline underline-offset-4 hover:text-emerald-100">
+              {lang === "hi" ? "नए डॉक्टर? मुफ़्त रजिस्टर करें →" : "New doctor? Register free →"}
             </Link>
           </div>
         </section>
