@@ -12,7 +12,9 @@
     "test:db": "supabase test db",
     "seed": "node --env-file=.env.local scripts/seed-demo.mjs",
     "check:secrets": "node --env-file=.env.local scripts/check-secrets.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "cf:build": "opennextjs-cloudflare build",
+    "cf:preview": "opennextjs-cloudflare build && wrangler dev"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.10.0",
@@ -28,6 +30,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@opennextjs/cloudflare": "^1.20.18",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
@@ -38,6 +41,7 @@
     "eslint-config-next": "15.5.29",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^3.2.7"
+    "vitest": "^3.2.7",
+    "wrangler": "^4.166.0"
   }
 }

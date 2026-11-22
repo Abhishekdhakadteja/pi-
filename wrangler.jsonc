@@ -1,0 +1,11 @@
+{
+  // Cloudflare standby copy of Clinic Easy (Workers + OpenNext). Live traffic still goes to Netlify.
+  // Deploy: .github/workflows/cloudflare-standby.yml (runs only when CLOUDFLARE_API_TOKEN is set).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "clinic-easy",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "observability": { "enabled": true }
+}
