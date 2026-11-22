@@ -47,6 +47,7 @@ Netlify → clinicease-demo → Site configuration → Environment variables।
 | `SIGNUP_EMAIL_FROM` + `BREVO_API_KEY` (या `RESEND_API_KEY`) | डॉक्टर रजिस्ट्रेशन का ईमेल OTP (Brevo: 300 ईमेल/दिन मुफ़्त) | टीम WhatsApp पर verify करती है, /owner से चालू |
 | `DEMO_OTP` | सिर्फ़ टेस्टिंग | production में अपने-आप बंद |
 | `GOOGLE_PLACES_API_KEY` | /health/doctors पर शहर के बाकी डॉक्टरों की लाइव लिस्ट (Google Places API New) | मुफ़्त "Google Maps में खोलें" बटन दिखता है |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY` | Booking OTP और doctor sign-up पर Cloudflare Turnstile (bot रोक, free)। Cloudflare → Turnstile → Add widget, domain `clinicease-demo.netlify.app` | सिर्फ़ SMS limits (नंबर/device/clinic) चलती हैं |
 
 > **ध्यान:** `ANTHROPIC_API_KEY` लगी है तो Basic पर ₹0 खर्च है, पर कोई भी Basic क्लिनिक 14 दिन का मुफ़्त Pro ट्रायल शुरू कर सकता है और ट्रायल में AI चलेगा। इसलिए console.anthropic.com → Limits में **$10/महीना की spend limit** ज़रूर लगाएँ।
 

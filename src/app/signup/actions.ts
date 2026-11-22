@@ -17,6 +17,7 @@ import {
   sendSignupCode,
 } from "@/lib/signup-otp";
 import { activateClinic, removePendingClinic } from "@/lib/signup-server";
+import { clientIp, turnstileOk } from "@/lib/otp-guard";
 
 // Public doctor sign-up. Nobody is logged in here, so the service-role client is used and these
 // checks are the security boundary:
@@ -24,7 +25,7 @@ import { activateClinic, removePendingClinic } from "@/lib/signup-server";
 //  - they switch on only after the OTP is verified, or after the Clinic Easy team approves on /owner,
 //  - the verify step only works with the signed cookie set by the same browser at sign-up.
 
-export type SignupError = SignupField | "exists" | "pendingExists" | "busy" | "dbUpdate" | "generic";
+export type SignupError = SignupField | "exists" | "pendingExists" | "busy" | "human" | "dbUpdate" | "generic";
 export type RegisterResult =
   | { ok: true; mode: "otp"; channel: "email" | "mobile"; to: string }
   | { ok: true; mode: "team"; ref: string; whatsapp: string | null }
@@ -84,6 +85,7 @@ export async function registerDoctor(form: FormData): Promise<RegisterResult> {
   const parsed = parseSignup((k) => form.get(k));
   if (!parsed.ok) return { ok: false, error: parsed.field };
   const v = parsed.value;
+  if (!(await turnstileOk(String(form.get("cf-turnstile-response") ?? ""), await clientIp()))) return { ok: false, error: "human" };
   const db = supabaseAdmin();
 
   // Spam guard: a burst of sign-ups is never a real rush of doctors.

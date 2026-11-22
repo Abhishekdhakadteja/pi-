@@ -6,6 +6,7 @@ import { formatDate, formatTime } from "@/lib/dates";
 import { normalizePhone } from "@/lib/validate";
 import type { ErrorCode } from "@/lib/i18n";
 import type { BookResult } from "@/lib/types";
+import { Turnstile } from "@/components/Turnstile";
 import {
   addFamilyMember,
   confirmBooking,
@@ -48,6 +49,7 @@ export function BookingFlow({
   const [booking, setBooking] = useState<BookResult | null>(null);
   const [error, setError] = useState<ErrorCode | "err_network" | null>(null);
   const [pending, start] = useTransition();
+  const [human, setHuman] = useState("");
 
   function run<R extends { ok: boolean }>(fn: () => Promise<R>, then: (v: Extract<R, { ok: true }>) => void) {
     setError(null);
@@ -101,7 +103,7 @@ export function BookingFlow({
               });
               return;
             }
-            run(() => sendOtp(slug, phone), (r) => {
+            run(() => sendOtp(slug, phone, human), (r) => {
               setPhone(r.phone);
               setStep("otp");
             });
@@ -121,6 +123,7 @@ export function BookingFlow({
               autoFocus
             />
           </div>
+          {otpRequired && <Turnstile onToken={setHuman} lang={lang} />}
           <button className="btn-primary" disabled={pending}>{pending ? t("loading") : otpRequired ? t("sendOtp") : t("continueBtn")}</button>
         </form>
       )}

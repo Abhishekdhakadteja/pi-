@@ -187,7 +187,8 @@ const en = {
   err_generic: "Something went wrong. Please try again.",
   err_network: "No internet connection. Please try again.",
   err_otp: "Wrong or expired OTP. Please try again.",
-  err_otp_rate: "Too many OTP requests. Please wait 10 minutes.",
+  err_otp_rate: "Too many OTP requests. Please wait a while, or call the clinic.",
+  err_human: "Please complete the check above (it confirms you are a person), then try again.",
   err_slot_taken: "This time was just taken. Please pick another.",
   err_past: "This time has already passed.",
   err_not_allowed: "You are not allowed to open this page.",
@@ -477,7 +478,8 @@ const hi: Dict = {
   err_generic: "कुछ गड़बड़ हो गई। कृपया दोबारा कोशिश करें।",
   err_network: "इंटरनेट नहीं है। कृपया दोबारा कोशिश करें।",
   err_otp: "OTP गलत है या पुराना हो गया। दोबारा कोशिश करें।",
-  err_otp_rate: "बहुत बार OTP माँगा गया। 10 मिनट रुकें।",
+  err_otp_rate: "बहुत बार OTP माँगा गया। थोड़ी देर रुकें, या clinic को फ़ोन करें।",
+  err_human: "ऊपर वाली जाँच पूरी करें (इससे पता चलता है कि आप इंसान हैं), फिर दोबारा कोशिश करें।",
   err_slot_taken: "यह समय अभी किसी ने ले लिया। दूसरा समय चुनें।",
   err_past: "यह समय निकल चुका है।",
   err_not_allowed: "आपको यह पेज खोलने की अनुमति नहीं है।",
@@ -618,6 +620,7 @@ export type ErrorCode =
   | "err_generic"
   | "err_otp"
   | "err_otp_rate"
+  | "err_human"
   | "err_slot_taken"
   | "err_past"
   | "err_not_allowed"
