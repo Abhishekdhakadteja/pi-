@@ -58,14 +58,16 @@ export async function updatePublicListing(form: FormData): Promise<Res> {
   const city = cleanCity(form.get("city"), "");
   const specialty = String(form.get("specialty") ?? "");
   const doctor = cleanName(form.get("doctor_name"));
-  if (listed && (!city || !isSpecialtyId(specialty))) return { ok: false, error: "err_generic" };
+  if (listed && (city.length < 2 || !isSpecialtyId(specialty))) return { ok: false, error: "err_generic" };
   const supabase = await supabaseServer();
   const { error } = await supabase
     .from("clinics")
     .update({
-      public_listed: listed,
-      city: city || null,
-      specialty: isSpecialtyId(specialty) ? specialty : null,
+      public_listing: listed,
+      // city must be 2-60 letters (doctor_signup constraint); keep the old value when left empty.
+      ...(city.length >= 2 ? { city } : {}),
+      // Keep a sign-up specialty (e.g. ayurveda, homeo) when the form leaves it empty.
+      ...(isSpecialtyId(specialty) ? { specialty } : {}),
       doctor_name: doctor || null,
     })
     .eq("id", staff.clinic_id);

@@ -4,7 +4,7 @@ import { useT } from "@/components/LangProvider";
 import { SPECIALTIES } from "@/lib/health/specialties";
 import { updatePublicListing } from "./actions";
 
-type Listing = { public_listed: boolean; city: string | null; specialty: string | null; doctor_name: string | null };
+type Listing = { public_listing: boolean; city: string | null; specialty: string | null; doctor_name: string | null };
 
 const W = {
   hi: {
@@ -52,7 +52,7 @@ export function PublicListingForm({ listing }: { listing: Listing }) {
       <h2 className="text-xl font-bold">🌐 {w.title}</h2>
       <p className="text-sm opacity-80">{w.body}</p>
       <label className="flex items-center gap-3 text-lg">
-        <input type="checkbox" name="public_listed" defaultChecked={listing.public_listed} className="h-6 w-6" />
+        <input type="checkbox" name="public_listed" defaultChecked={listing.public_listing} className="h-6 w-6" />
         {w.show}
       </label>
       <div>

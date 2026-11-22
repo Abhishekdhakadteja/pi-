@@ -4,6 +4,7 @@ import { cleanCity, mapsSearchHref, toWhatsAppNumber, whatsAppBookingHref } from
 import { buildRoutine, routineToIcs, type RoutineInput } from "@/lib/health/routine";
 import { getHealthWords } from "@/lib/health/words";
 import { readFileSync } from "node:fs";
+import { isSpecialty as isSignupSpecialty } from "@/lib/signup";
 
 describe("symptom → specialty (not diagnosis)", () => {
   it.each([
@@ -48,9 +49,15 @@ describe("symptom → specialty (not diagnosis)", () => {
     }
   });
 
-  it("migration allows exactly our specialty ids", () => {
-    const sql = readFileSync("supabase/migrations/20261120000001_public_doctor_directory.sql", "utf8");
-    for (const s of SPECIALTIES) expect(sql).toContain(`'${s.id}'`);
+  it("finder specialty ids are valid sign-up specialty keys", () => {
+    for (const s of SPECIALTIES) expect(isSignupSpecialty(s.id)).toBe(true);
+  });
+
+  it("directory migration adds no specialty constraint that old rows could break", () => {
+    const sql = readFileSync("supabase/migrations/20261122000001_clinic_doctor_name.sql", "utf8");
+    const code = sql.split("\n").filter((l) => !l.trim().startsWith("--")).join("\n");
+    expect(code).not.toMatch(/specialty/i);
+    expect(sql).toMatch(/add column if not exists doctor_name/);
   });
 });
 

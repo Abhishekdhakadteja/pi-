@@ -20,7 +20,8 @@ export async function listedClinics(city: string, specialties: SpecialtyId[]): P
     let q = supabaseAdmin()
       .from("clinics")
       .select("slug, name, doctor_name, address, city, specialty")
-      .eq("public_listed", true)
+      .eq("public_listing", true)
+      .eq("signup_status", "active")
       .ilike("city", city.replace(/[%_\\]/g, ""))
       .limit(20);
     if (specialties.length) q = q.in("specialty", specialties);

@@ -4,14 +4,14 @@ import { login, type LoginState } from "./actions";
 import { useT } from "@/components/LangProvider";
 import { PasswordInput } from "@/components/PasswordInput";
 
-export function LoginForm() {
+export function LoginForm({ initialId = "" }: { initialId?: string }) {
   const { t } = useT();
   const [state, action, pending] = useActionState<LoginState, FormData>(login, {});
   return (
     <form action={action} className="card flex flex-col gap-4">
       <div>
         <label className="label" htmlFor="id">{t("emailOrPhone")}</label>
-        <input id="id" name="id" className="input" autoComplete="username" required inputMode="email" />
+        <input id="id" name="id" className="input" autoComplete="username" required inputMode="email" defaultValue={initialId} />
       </div>
       <div>
         <label className="label" htmlFor="password">{t("password")}</label>

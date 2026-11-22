@@ -240,7 +240,6 @@ export async function makePatientProLink(
 ): Promise<{ ok: true; link: string; whatsapp: string; until: string } | { ok: false; error: string }> {
   await assertOwner();
   const { makeActivationCode } = await import("@/lib/health/patient-pro");
-  const { serverEnv } = await import("@/lib/server-env");
   const digits = String(phone ?? "").replace(/\D/g, "").slice(-10);
   if (!/^[6-9]\d{9}$/.test(digits)) return { ok: false, error: "सही 10 अंकों का मोबाइल नंबर डालें।" };
   const m = Math.floor(Number(months));
@@ -250,4 +249,39 @@ export async function makePatientProLink(
   const until = new Date(Date.now() + (m * 30 + 3) * 86400000).toISOString().slice(0, 10);
   const text = `नमस्ते! आपका Clinic Easy Health Pro चालू करने का लिंक (${until} तक):\n${link}\n\nइसे उसी फोन पर खोलें जिस पर ऐप इस्तेमाल करना है।`;
   return { ok: true, link, until, whatsapp: `https://wa.me/91${digits}?text=${encodeURIComponent(text)}` };
+}
+
+/** Owner switches on a self sign-up after checking the doctor (free "team check" mode). Returns the WhatsApp text for the doctor. */
+export async function approveSignup(clinicId: string): Promise<{ ok: true; message: string; phone: string | null } | { ok: false; error: string }> {
+  const owner = await assertOwner();
+  const { activateClinic } = await import("@/lib/signup-server");
+  const { approvedText } = await import("@/lib/signup");
+  const db = supabaseAdmin();
+  const { data: clinic } = await db.from("clinics").select("name, signup_status").eq("id", clinicId).maybeSingle();
+  if (!clinic || clinic.signup_status !== "pending") return { ok: false, error: "यह रजिस्ट्रेशन अब pending नहीं है।" };
+  if (!(await activateClinic(db, clinicId, { userId: owner.id, how: `owner ${owner.email}` }))) return { ok: false, error: "चालू नहीं हो पाया।" };
+  const { data: staff } = await db.from("users").select("name, role, phone, email").eq("clinic_id", clinicId);
+  const doc = staff?.find((s) => s.role === "doctor");
+  const admin = staff?.find((s) => s.role === "admin");
+  revalidatePath("/owner");
+  return {
+    ok: true,
+    phone: doc?.phone ?? null,
+    message: approvedText({
+      appUrl: serverEnv.appUrl(),
+      doctorName: doc?.name ?? "",
+      clinicName: clinic.name,
+      phone: doc?.phone ?? "",
+      email: admin?.email ?? "",
+    }),
+  };
+}
+
+/** Owner deletes a fake / duplicate self sign-up that was never switched on. */
+export async function rejectSignup(clinicId: string): Promise<{ ok: boolean; error?: string }> {
+  await assertOwner();
+  const { removePendingClinic } = await import("@/lib/signup-server");
+  const ok = await removePendingClinic(supabaseAdmin(), clinicId);
+  revalidatePath("/owner");
+  return ok ? { ok } : { ok, error: "हटाया नहीं जा सका।" };
 }

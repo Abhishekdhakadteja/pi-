@@ -23,7 +23,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   // the section is simply hidden instead of breaking the settings page.
   const { data: listing } = await supabase
     .from("clinics")
-    .select("public_listed, city, specialty, doctor_name")
+    .select("public_listing, city, specialty, doctor_name")
     .eq("id", staff.clinic_id)
     .maybeSingle();
   return (

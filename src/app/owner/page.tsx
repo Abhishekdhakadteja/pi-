@@ -5,7 +5,8 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { addDays, todayIST } from "@/lib/dates";
 import { logout } from "@/app/login/actions";
 import { BrandMark } from "@/components/BrandMark";
-import { NewClinicForm, ClinicPauseButton, ClinicPlanForm } from "./OwnerForms";
+import { NewClinicForm, ClinicPauseButton, ClinicPlanForm, SignupReview } from "./OwnerForms";
+import { signupRef, specialtyLabel } from "@/lib/signup";
 import { PatientProForm } from "./PatientProForm";
 import { planState, type ClinicPlanRow } from "@/lib/plans";
 
@@ -60,11 +61,34 @@ async function loadClinics(): Promise<Row[]> {
   );
 }
 
+type PendingSignup = {
+  id: string;
+  name: string;
+  city: string | null;
+  specialty: string | null;
+  specialty_other: string | null;
+  doctor_reg_no: string | null;
+  phone: string | null;
+  created_at: string;
+};
+
+/** Self sign-ups waiting for the team check. Before the sign-up SQL is run the columns do not exist: empty list. */
+async function loadPendingSignups(): Promise<PendingSignup[]> {
+  const { data, error } = await supabaseAdmin()
+    .from("clinics")
+    .select("id, name, city, specialty, specialty_other, doctor_reg_no, phone, created_at")
+    .eq("signup_status", "pending")
+    .order("created_at", { ascending: false });
+  return error ? [] : ((data ?? []) as PendingSignup[]);
+}
+
 const ROLE_HI: Record<string, string> = { doctor: "Doctor", admin: "Admin", attender: "Attender" };
 
 export default async function OwnerPage() {
   const owner = await requireOwner();
-  const clinics = await loadClinics();
+  const [all, signups] = await Promise.all([loadClinics(), loadPendingSignups()]);
+  const pendingIds = new Set(signups.map((p) => p.id));
+  const clinics = all.filter((c) => !pendingIds.has(c.id));
   const active = clinics.filter((c) => c.staff.some((s) => s.active)).length;
 
   return (
@@ -99,6 +123,37 @@ export default async function OwnerPage() {
           <div className="text-sm text-slate-500">चालू clinics</div>
         </div>
       </div>
+
+      {signups.length > 0 && (
+        <section className="mb-6">
+          <h2 className="mb-3 text-xl font-bold">🩺 नए रजिस्ट्रेशन ({signups.length}): verify करके चालू करें</h2>
+          <ul className="flex flex-col gap-3">
+            {signups.map((p) => {
+              const doc = all.find((c) => c.id === p.id)?.staff ?? [];
+              const doctor = doc.find((s) => s.role === "doctor");
+              const admin = doc.find((s) => s.role === "admin");
+              return (
+                <li key={p.id} className="card ring-2 ring-amber-200">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="text-lg font-bold">{p.name}</div>
+                      <div className="text-sm text-slate-500">
+                        Ref <b>{signupRef(p.id)}</b> · {p.created_at.slice(0, 16).replace("T", " ")} UTC
+                      </div>
+                    </div>
+                  </div>
+                  <ul className="mt-2 flex flex-col gap-1 text-sm">
+                    <li><b>Doctor:</b> Dr. {doctor?.name ?? "—"} · {specialtyLabel(p.specialty) || "—"}{p.specialty_other ? ` (${p.specialty_other})` : ""}</li>
+                    <li><b>शहर:</b> {p.city ?? "—"} · <b>Reg. no:</b> {p.doctor_reg_no ?? "—"}</li>
+                    <li><b>मोबाइल:</b> {p.phone ?? doctor?.phone ?? "—"} · <b>Email:</b> {admin?.email ?? "—"}</li>
+                  </ul>
+                  <SignupReview clinicId={p.id} />
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       <section className="card mb-6">
         <h1 className="mb-1 text-2xl font-bold">+ नई clinic जोड़ें</h1>
