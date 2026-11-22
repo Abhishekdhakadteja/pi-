@@ -2,6 +2,7 @@
 # with no activity; a paused project means the app cannot log in or save anything until
 # someone presses "Restore" in the dashboard. This makes one tiny read every day.
 # It needs no secret: it uses the public anon key that every browser already has.
+# queue_status is the one table the public (anon) role may read; other tables answer 401.
 name: Supabase keep-alive
 
 on:
@@ -26,7 +27,7 @@ jobs:
           for i in 1 2 3; do
             code=$(curl -s -o /dev/null -w '%{http_code}' \
               -H "apikey: $ANON_KEY" -H "Authorization: Bearer $ANON_KEY" \
-              "$SUPABASE_URL/rest/v1/clinics?select=id&limit=1")
+              "$SUPABASE_URL/rest/v1/queue_status?select=*&limit=1")
             echo "Attempt $i: HTTP $code"
             [ "$code" = "200" ] && exit 0
             sleep 20
