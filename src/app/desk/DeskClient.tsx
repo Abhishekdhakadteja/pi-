@@ -3,6 +3,7 @@ import { useState, useTransition } from "react";
 import { useT } from "@/components/LangProvider";
 import { addPatient, bookPatient, searchPatients, updatePatient } from "./actions";
 import { ComplaintInput } from "@/components/ComplaintInput";
+import { VoiceButton, appendSpoken } from "@/components/os/VoiceButton";
 import { addDays, formatDate, formatTime, todayIST } from "@/lib/dates";
 import { normalizePhone } from "@/lib/validate";
 import type { BookResult, PatientSummary } from "@/lib/types";
@@ -10,7 +11,8 @@ import type { ErrorCode } from "@/lib/i18n";
 
 type View = "search" | "add" | "patient" | "result";
 
-export function DeskClient() {
+/** voice: mic buttons on the desk forms (Pro, like doctor voice notes); voiceLocked: the one-line Pro hint for Basic. */
+export function DeskClient({ voice = false, voiceLocked = null }: { voice?: boolean; voiceLocked?: string | null }) {
   const { t, lang } = useT();
   const [view, setView] = useState<View>("search");
   const [phone, setPhone] = useState("");
@@ -129,6 +131,8 @@ export function DeskClient() {
 
       {view === "add" && (
         <AddPatientForm
+          voice={voice}
+          voiceLocked={voiceLocked}
           phone={phone}
           pending={pending}
           showNotFound={!patients?.length}
@@ -184,6 +188,12 @@ export function DeskClient() {
             </button>
           </div>
           <ComplaintInput value={complaint} onChange={setComplaint} />
+          {voice && (
+            <div className="-mt-2 flex items-center gap-2 text-sm text-slate-500">
+              <VoiceButton compact target="complaint" onSpoken={(s) => setComplaint((c) => appendSpoken(c, s).slice(0, 300))} />
+              <span>{t("voiceComplaint")}</span>
+            </div>
+          )}
           <button className="btn-primary min-h-20 text-2xl" disabled={pending} onClick={() => doBook()}>
             {pending ? t("loading") : t("bookToday")}
           </button>
@@ -221,12 +231,16 @@ export function DeskClient() {
 }
 
 function AddPatientForm({
+  voice,
+  voiceLocked,
   phone,
   pending,
   showNotFound,
   onSubmit,
   onCancel,
 }: {
+  voice: boolean;
+  voiceLocked: string | null;
   phone: string;
   pending: boolean;
   showNotFound: boolean;
@@ -255,18 +269,32 @@ function AddPatientForm({
       }}
     >
       {showNotFound && <p className="text-lg text-slate-700">{t("noPatientFound")}</p>}
+      {voice ? (
+        <p className="-mb-1 rounded-xl bg-rose-50 p-2 text-sm text-rose-800">🎤 {t("voiceDeskHint")}</p>
+      ) : voiceLocked ? (
+        <a href="/pro" className="-mb-1 text-sm text-amber-700 underline">🔒 {voiceLocked}</a>
+      ) : null}
       <div>
         <label className="label" htmlFor="name">{t("name")}</label>
-        <input id="name" name="name" className="input" required maxLength={120} autoFocus />
+        <div className="flex gap-2">
+          <input id="name" name="name" className="input" required maxLength={120} autoFocus />
+          {voice && <VoiceButton compact target="name" />}
+        </div>
       </div>
       <div>
         <label className="label" htmlFor="newphone">{t("phone")}</label>
-        <input id="newphone" name="phone" className="input" inputMode="numeric" defaultValue={phone} required maxLength={16} />
+        <div className="flex gap-2">
+          <input id="newphone" name="phone" className="input" inputMode="numeric" defaultValue={phone} required maxLength={16} />
+          {voice && <VoiceButton compact target="newphone" kind="digits" />}
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="label" htmlFor="age">{t("age")}</label>
-          <input id="age" name="age" className="input" inputMode="numeric" maxLength={3} />
+          <div className="flex gap-2">
+            <input id="age" name="age" className="input" inputMode="numeric" maxLength={3} />
+            {voice && <VoiceButton compact target="age" kind="digits" />}
+          </div>
         </div>
         <div>
           <label className="label" htmlFor="gender">{t("gender")}</label>
@@ -280,7 +308,10 @@ function AddPatientForm({
       </div>
       <div>
         <label className="label" htmlFor="address">{t("address")}</label>
-        <input id="address" name="address" className="input" maxLength={300} />
+        <div className="flex gap-2">
+          <input id="address" name="address" className="input" maxLength={300} />
+          {voice && <VoiceButton compact target="address" />}
+        </div>
       </div>
       <label className="flex items-start gap-3 rounded-xl bg-amber-50 p-4 ring-1 ring-amber-200">
         <input

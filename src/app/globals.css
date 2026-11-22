@@ -71,6 +71,8 @@ body {
 }
 
 .print-only { display: none; }
+/* Filled by voice: amber ring until a person checks it (types in the field). */
+[data-voice="1"] { box-shadow: 0 0 0 3px #f59e0b !important; }
 @media print {
   .no-print { display: none !important; }
   .print-only { display: table !important; }
