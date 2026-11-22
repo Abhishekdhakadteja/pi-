@@ -327,7 +327,12 @@ function AddMember({
       </div>
       <label className="flex items-start gap-3 rounded-xl bg-amber-50 p-3 ring-1 ring-amber-200">
         <input type="checkbox" className="mt-1 h-7 w-7 shrink-0 accent-teal-700" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-        <span>{t("consentText")}</span>
+        <span>
+          {t("consentText")}{" "}
+          <Link href="/privacy" target="_blank" className="font-semibold text-teal-700 underline">
+            Privacy Policy
+          </Link>
+        </span>
       </label>
       {err && !consent && <p className="error-box">{t("consentRequired")}</p>}
       <button className="btn-primary" disabled={pending}>{t("addPatient")}</button>

@@ -4,6 +4,7 @@ import { getLang } from "@/lib/lang-server";
 import { getProWords } from "@/lib/pro-content";
 import { BrandMark, BrandName } from "@/components/BrandMark";
 import { LangSwitch } from "@/components/LangSwitch";
+import { LegalLinks } from "@/components/LegalLinks";
 import { ProBadge } from "@/components/ProBadge";
 import { PricingPlans } from "@/components/pro/PricingPlans";
 import { TeamContact } from "@/components/TeamContact";
@@ -41,6 +42,7 @@ export default async function PricingPage() {
         <div className="mt-10">
           <TeamContact lang={lang} />
         </div>
+        <LegalLinks className="mt-8 justify-center" />
       </div>
     </main>
   );

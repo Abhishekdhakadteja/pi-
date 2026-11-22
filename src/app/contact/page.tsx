@@ -4,6 +4,7 @@ import { getLang } from "@/lib/lang-server";
 import { BrandMark, BrandName } from "@/components/BrandMark";
 import { LangSwitch } from "@/components/LangSwitch";
 import { TeamContact } from "@/components/TeamContact";
+import { LegalLinks } from "@/components/LegalLinks";
 
 export const metadata: Metadata = {
   title: "Contact · Clinic Easy",
@@ -32,6 +33,7 @@ export default async function ContactPage() {
             {lang === "hi" ? "प्लान और कीमतें देखें →" : "See plans and prices →"}
           </Link>
         </p>
+        <LegalLinks className="mt-4 justify-center" />
       </div>
     </main>
   );

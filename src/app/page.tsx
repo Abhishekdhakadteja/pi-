@@ -8,6 +8,7 @@ import { HubLine, TeamContact } from "@/components/TeamContact";
 import { ProBadge } from "@/components/ProBadge";
 import { PricingPlans } from "@/components/pro/PricingPlans";
 import { getProWords } from "@/lib/pro-content";
+import { LegalLinks } from "@/components/LegalLinks";
 
 // Public front page: the first thing a doctor sees. Dark, "AI clinic OS" look.
 // Pure server HTML + CSS animations (no client JS) so it stays fast on cheap phones.
@@ -231,6 +232,7 @@ export default async function Home() {
           <Link href="/contact" className="text-cyan-300 underline-offset-4 hover:underline">
             {lang === "hi" ? "संपर्क करें" : "Contact"}
           </Link>
+          <LegalLinks />
         </footer>
       </div>
     </main>
