@@ -9,12 +9,22 @@ export default async function handler(): Promise<Response> {
     console.error("reminders-cron: APP_URL/URL or CRON_SECRET is missing");
     return new Response("missing config", { status: 500 });
   }
-  const res = await fetch(`${base}/api/cron/reminders`, {
-    headers: { Authorization: `Bearer ${secret}` },
-  });
-  const text = await res.text();
-  console.log(`reminders-cron: ${res.status} ${text.slice(0, 500)}`);
-  return new Response(text, { status: res.status });
+  // The route works for ~8 s per call and says {"more":true} when time ran out; keep calling
+  // (a scheduled function may run ~30 s) so even a big day is finished. Each call is safe to repeat.
+  const started = Date.now();
+  let last = new Response("no call", { status: 500 });
+  for (let i = 0; i < 3; i++) {
+    const res = await fetch(`${base}/api/cron/reminders`, { headers: { Authorization: `Bearer ${secret}` } });
+    const text = await res.text();
+    console.log(`reminders-cron: call ${i + 1}: ${res.status} ${text.slice(0, 500)}`);
+    last = new Response(text, { status: res.status });
+    let more = false;
+    try {
+      more = JSON.parse(text).more === true;
+    } catch {}
+    if (!res.ok || !more || Date.now() - started > 15_000) break;
+  }
+  return last;
 }
 
 export const config = { schedule: "30 3 * * *" };
