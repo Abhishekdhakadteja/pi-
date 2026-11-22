@@ -56,7 +56,8 @@ describe("symptom → specialty (not diagnosis)", () => {
   it("directory migration adds no specialty constraint that old rows could break", () => {
     const sql = readFileSync("supabase/migrations/20261122000001_clinic_doctor_name.sql", "utf8");
     const code = sql.split("\n").filter((l) => !l.trim().startsWith("--")).join("\n");
-    expect(code).not.toMatch(/specialty/i);
+    expect(code).not.toMatch(/add constraint clinics_specialty/i);
+    expect(code).toMatch(/drop constraint if exists clinics_specialty_check/);
     expect(sql).toMatch(/add column if not exists doctor_name/);
   });
 });
