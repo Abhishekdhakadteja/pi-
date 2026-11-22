@@ -1,0 +1,35 @@
+# Keeps the free Supabase project awake. Supabase pauses a free project after about 7 days
+# with no activity; a paused project means the app cannot log in or save anything until
+# someone presses "Restore" in the dashboard. This makes one tiny read every day.
+# It needs no secret: it uses the public anon key that every browser already has.
+name: Supabase keep-alive
+
+on:
+  schedule:
+    - cron: "15 1 * * *"   # 6:45 AM IST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: https://humdtulwhbmeghehmvky.supabase.co
+      ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1bWR0dWx3aGJtZWdoZWhtdmt5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0MDI5MjcsImV4cCI6MjEwOTk3ODkyN30.YKD_aREByYLgwxqXNlTYOb7Q13MuvMWD8lJanhV0oLQ
+    steps:
+      - name: Read one row through the API
+        run: |
+          set -u
+          for i in 1 2 3; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' \
+              -H "apikey: $ANON_KEY" -H "Authorization: Bearer $ANON_KEY" \
+              "$SUPABASE_URL/rest/v1/clinics?select=id&limit=1")
+            echo "Attempt $i: HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 20
+          done
+          echo "::error::Supabase did not answer with 200. It may be paused: open https://supabase.com/dashboard/project/humdtulwhbmeghehmvky and press Restore."
+          exit 1

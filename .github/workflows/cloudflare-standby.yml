@@ -1,0 +1,100 @@
+# Standby copy of Clinic Easy on Cloudflare Workers (free plan to start).
+# Live traffic still goes to Netlify. This keeps a ready copy at
+#   https://clinic-easy.<your-subdomain>.workers.dev
+# so that if Netlify ever stops the site (free credits used up), we can switch in minutes.
+# See docs/CLOUDFLARE.md.
+#
+# It does nothing until CLOUDFLARE_API_TOKEN is added in
+# Settings -> Secrets and variables -> Actions. Then it deploys on every push to main.
+#
+# Repository secrets used (the same values as on Netlify; missing ones are skipped):
+#   CLOUDFLARE_API_TOKEN      required. Token from the "Edit Cloudflare Workers" template.
+#   CLOUDFLARE_ACCOUNT_ID     optional. Needed only if the token can see more than one account.
+#   SUPABASE_SERVICE_ROLE_KEY, PATIENT_SESSION_SECRET, CRON_SECRET, OWNER_EMAILS, and any of the
+#   optional keys listed in SECRET_NAMES below.
+name: Cloudflare standby
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-standby
+  cancel-in-progress: true
+
+env:
+  # Public values (they are already inside every browser that opens the site).
+  NEXT_PUBLIC_SUPABASE_URL: https://humdtulwhbmeghehmvky.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1bWR0dWx3aGJtZWdoZWhtdmt5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0MDI5MjcsImV4cCI6MjEwOTk3ODkyN30.YKD_aREByYLgwxqXNlTYOb7Q13MuvMWD8lJanhV0oLQ
+  SECRET_NAMES: >-
+    SUPABASE_SERVICE_ROLE_KEY PATIENT_SESSION_SECRET CRON_SECRET OWNER_EMAILS APP_URL
+    MESSAGING_PROVIDER MSG91_AUTH_KEY MSG91_TEMPLATE_ID WHATSAPP_TOKEN WHATSAPP_PHONE_NUMBER_ID
+    WHATSAPP_TEMPLATE WHATSAPP_TEMPLATE_LANG INBOUND_WEBHOOK_SECRET ANTHROPIC_API_KEY
+    RAZORPAY_KEY_ID RAZORPAY_KEY_SECRET RAZORPAY_WEBHOOK_SECRET RESEND_API_KEY BREVO_API_KEY
+    SIGNUP_EMAIL_FROM GOOGLE_PLACES_API_KEY
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check token
+        id: gate
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::notice::CLOUDFLARE_API_TOKEN is not set, so the standby copy is skipped (see docs/CLOUDFLARE.md)."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.run == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        if: steps.gate.outputs.run == 'true'
+        run: npm ci --no-audit --no-fund
+
+      - name: Build for Workers
+        if: steps.gate.outputs.run == 'true'
+        run: npx opennextjs-cloudflare build
+
+      - name: Deploy
+        if: steps.gate.outputs.run == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy
+
+      - name: Copy server keys to the Worker
+        if: steps.gate.outputs.run == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+        run: |
+          set -euo pipefail
+          # Build a JSON of only the listed names that are set. Values never reach the log.
+          node -e '
+            const all = JSON.parse(process.env.ALL_SECRETS);
+            const out = {};
+            for (const n of process.env.SECRET_NAMES.split(/\s+/).filter(Boolean)) if (all[n]) out[n] = all[n];
+            require("fs").writeFileSync("cf-secrets.json", JSON.stringify(out));
+            console.log("Keys to copy:", Object.keys(out).join(", ") || "(none)");
+          '
+          if [ "$(cat cf-secrets.json)" != "{}" ]; then
+            npx wrangler secret bulk cf-secrets.json
+          fi
+          rm -f cf-secrets.json
