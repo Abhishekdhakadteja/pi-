@@ -151,10 +151,21 @@ export async function saveRx(
  */
 export async function aiPatientSummary(
   appointmentId: string,
-): Promise<{ ok: true; lines: string[] } | { ok: false; error: "ai_off" | "ai_failed" | ErrorCode }> {
+): Promise<{ ok: true; lines: string[] } | { ok: false; error: "ai_off" | "ai_failed" | "ai_budget" | "ai_busy" | "ai_limit" | ErrorCode }> {
   const staff = await assertRole(["doctor"]);
   const { requireProAI } = await import("@/lib/ai-guard");
-  if (!(await requireProAI(staff.clinic_id)).ok) return { ok: false, error: "ai_off" };
+  const gate = await requireProAI(staff.clinic_id);
+  if (!gate.ok) return { ok: false, error: "ai_off" };
+  // Fair use, so one clinic can never run up a big AI bill (each summary ≈ ₹0.05).
+  const { SUMMARY_DAILY_LIMIT } = await import("@/lib/ai-manager/tools-def");
+  const { count } = await (await import("@/lib/supabase/server"))
+    .supabaseAdmin()
+    .from("audit_log")
+    .select("id", { count: "exact", head: true })
+    .eq("clinic_id", staff.clinic_id)
+    .eq("action", "ai_summary")
+    .gte("time", `${todayIST()}T00:00:00+05:30`);
+  if ((count ?? 0) >= SUMMARY_DAILY_LIMIT[gate.plan.tier === "pro_max" ? "pro_max" : "pro"]) return { ok: false, error: "ai_limit" };
   const { summarizePatient } = await import("@/lib/ai");
   const appt = await loadAppointment(appointmentId, staff.clinic_id);
   if (!appt) return { ok: false, error: "err_generic" };
@@ -192,7 +203,10 @@ export async function aiPatientSummary(
     await audit(staff, "ai_summary", "patients", appt.patient_id, { lines: lines.length });
     return { ok: true, lines };
   } catch (e) {
-    console.error("[ai] summary failed", e instanceof Error ? e.message : e);
-    return { ok: false, error: "ai_failed" };
+    const { classifyAiError, reportAiFailure } = await import("@/lib/ai-errors");
+    const kind = classifyAiError(e);
+    console.error("[ai] summary failed", kind, e instanceof Error ? e.message : e);
+    await reportAiFailure("summary", kind, "/doctor");
+    return { ok: false, error: kind === "budget" || kind === "key" ? "ai_budget" : kind === "busy" ? "ai_busy" : "ai_failed" };
   }
 }
