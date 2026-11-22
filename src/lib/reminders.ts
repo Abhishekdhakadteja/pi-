@@ -37,13 +37,18 @@ type CourseRow = {
   } | null;
 };
 
-export type JobSummary = { first: number; followUp: number; alreadyBooked: number; skippedNoConsent: number; failed: number };
+export type JobSummary = { first: number; followUp: number; alreadyBooked: number; skippedNoConsent: number; failed: number; more: boolean };
 
 /** Runs for every clinic, or only `clinicId` (the "prepare now" button on the Messages page). */
-export async function runReminderJob(now: Date = new Date(), clinicId?: string): Promise<JobSummary> {
+export async function runReminderJob(now: Date = new Date(), clinicId?: string, budgetMs = 0): Promise<JobSummary> {
   const db = supabaseAdmin();
+  // With many clinics one run can be too long for a serverless function. With a time budget the
+  // job stops cleanly when time is up and says `more: true`; the cron calls again and carries on
+  // (every step is safe to repeat: finished courses change status, and a reminder cannot be sent twice).
+  const deadline = budgetMs > 0 ? Date.now() + budgetMs : Infinity;
+  const outOfTime = () => Date.now() > deadline;
   const today = todayIST(now);
-  const summary: JobSummary = { first: 0, followUp: 0, alreadyBooked: 0, skippedNoConsent: 0, failed: 0 };
+  const summary: JobSummary = { first: 0, followUp: 0, alreadyBooked: 0, skippedNoConsent: 0, failed: 0, more: false };
   // Automatic SMS / WhatsApp are a Clinic Easy Pro service. Basic clinics get the free
   // one-tap WhatsApp message on the Messages page instead.
   const proCache = new Map<string, boolean>();
@@ -68,6 +73,10 @@ export async function runReminderJob(now: Date = new Date(), clinicId?: string):
   if (e1) throw e1;
 
   for (const c of (due ?? []) as unknown as CourseRow[]) {
+    if (outOfTime()) {
+      summary.more = true;
+      break;
+    }
     if (!c.patient || !c.clinic) continue;
     if (!c.patient.consent_given || c.patient.opted_out) {
       summary.skippedNoConsent++;
@@ -93,6 +102,10 @@ export async function runReminderJob(now: Date = new Date(), clinicId?: string):
   const cutoff = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000); // ~2 days (1h tolerance)
 
   for (const c of (reminded ?? []) as unknown as CourseRow[]) {
+    if (outOfTime()) {
+      summary.more = true;
+      break;
+    }
     if (!c.patient || !c.clinic) continue;
     const { data: first } = await db
       .from("reminders")

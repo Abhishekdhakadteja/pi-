@@ -16,11 +16,13 @@ function authorized(req: NextRequest) {
 async function handle(req: NextRequest) {
   if (!authorized(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   try {
-    const summary = await runReminderJob();
+    const summary = await runReminderJob(new Date(), undefined, 8_000); // 8 s per call; the scheduler calls again while `more`
     console.log("[reminders] job finished", summary);
-    return NextResponse.json({ ok: true, summary });
+    return NextResponse.json({ ok: true, more: summary.more, summary });
   } catch (e) {
     console.error("[reminders] job failed", e);
+    const { logError } = await import("@/lib/error-log");
+    await logError({ source: "server", path: "/api/cron/reminders", message: `[reminders] daily job failed: ${e instanceof Error ? e.message : "unknown"}` });
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 }

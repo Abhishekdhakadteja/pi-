@@ -1,0 +1,60 @@
+# Monthly proof that our backups really open. Takes the newest encrypted backup, decrypts it and
+# restores it into a throw-away Postgres inside this runner. It never touches the live database.
+# If this fails, the job turns red and GitHub emails the repo owner: fix the backup before you need it.
+name: Backup restore test
+
+on:
+  schedule:
+    - cron: "0 4 5 * *"   # 5th of every month, 9:30 AM IST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Download newest backup
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          name=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" \
+            --jq '[.artifacts[] | select((.name|startswith("clinic-easy-db-")) and (.expired|not))] | sort_by(.created_at) | last | .name')
+          if [ -z "$name" ] || [ "$name" = "null" ]; then echo "::error::No backup found."; exit 1; fi
+          echo "Newest backup: $name"
+          gh run download --repo "$GITHUB_REPOSITORY" --name "$name" --dir dl 2>/dev/null || {
+            id=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$name" --jq '.artifacts[0].id')
+            gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$id/zip" > dl.zip
+            mkdir -p dl && unzip -q dl.zip -d dl
+          }
+          ls -la dl
+
+      - name: Decrypt
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          f=$(ls dl/backup-*.tar.gz.gpg | head -1)
+          gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 -o b.tar.gz -d "$f" <<< "$BACKUP_PASSPHRASE"
+          mkdir out && tar -xzf b.tar.gz -C out
+          ls -la out
+
+      - name: Restore into scratch Postgres and check
+        run: |
+          set -euo pipefail
+          docker run -d --name scratch -e POSTGRES_PASSWORD=x -v "$PWD/out:/out" postgres:17
+          for i in $(seq 1 30); do docker exec scratch pg_isready -U postgres && break; sleep 2; done
+          docker exec scratch psql -U postgres -v ON_ERROR_STOP=1 -c "create schema if not exists auth; create role anon; create role authenticated; create role service_role;" >/dev/null
+          # Errors on Supabase-only extensions/roles are expected; what matters is that the data arrives.
+          docker exec scratch pg_restore -U postgres -d postgres --no-owner --no-privileges /out/public.dump || echo "restore finished with warnings"
+          for t in clinics patients appointments; do
+            n=$(docker exec scratch psql -U postgres -tA -c "select count(*) from public.$t")
+            echo "$t: $n rows"
+            if [ "$t" = "clinics" ] && [ "$n" -lt 1 ]; then echo "::error::Restored backup has no clinics."; exit 1; fi
+          done
+          docker exec scratch pg_restore -l /out/auth.dump > /dev/null
+          echo "Restore test passed."
