@@ -1,0 +1,45 @@
+# Checks every 30 minutes that the live app is up. If a check fails, the run turns red and
+# GitHub emails the repository owner, so a stopped site (for example Netlify free credits used up,
+# or a paused Supabase project) is noticed within half an hour instead of by a clinic.
+name: Site health
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SITE: https://clinicease-demo.netlify.app
+      SUPABASE_URL: https://humdtulwhbmeghehmvky.supabase.co
+      ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1bWR0dWx3aGJtZWdoZWhtdmt5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0MDI5MjcsImV4cCI6MjEwOTk3ODkyN30.YKD_aREByYLgwxqXNlTYOb7Q13MuvMWD8lJanhV0oLQ
+    steps:
+      - name: Check app pages and database
+        run: |
+          set -u
+          fail=0
+          check() { # name url [extra curl args...]
+            local name=$1 url=$2; shift 2
+            local code=000
+            for i in 1 2 3; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$@" "$url" || true)
+              [ "$code" = "200" ] && break
+              sleep 15
+            done
+            if [ "$code" = "200" ]; then echo "OK   $name"; else echo "::error::DOWN $name (HTTP $code) $url"; fail=1; fi
+          }
+          check "Home page"   "$SITE/"
+          check "Login page"  "$SITE/login"
+          check "Health page" "$SITE/health"
+          check "Database"    "$SUPABASE_URL/rest/v1/queue_status?select=*&limit=1" \
+                -H "apikey: $ANON_KEY" -H "Authorization: Bearer $ANON_KEY"
+          if [ "$fail" = 1 ]; then
+            echo "::error::Clinic Easy is down. Netlify: https://app.netlify.com/projects/clinicease-demo  Supabase: https://supabase.com/dashboard/project/humdtulwhbmeghehmvky  Switch plan: docs/CLOUDFLARE.md"
+            exit 1
+          fi
