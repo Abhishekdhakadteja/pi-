@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Offline · Clinic Easy</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: system-ui, -apple-system, "Noto Sans Devanagari", sans-serif; margin: 0; background: #f8fafc; color: #0f172a; }
+  main { max-width: 720px; margin: 0 auto; padding: 16px; }
+  .warn { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 12px; font-size: 17px; }
+  h1 { font-size: 22px; margin: 16px 0 4px; }
+  .muted { color: #475569; font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; background: #fff; font-size: 16px; }
+  th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; vertical-align: top; }
+  th { background: #e2e8f0; }
+  td.tok { font-weight: 800; font-size: 20px; text-align: center; width: 48px; }
+  .done { color: #64748b; text-decoration: line-through; }
+  .row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  button { font-size: 17px; padding: 10px 16px; border-radius: 10px; border: 0; background: #0f766e; color: #fff; }
+  button.sec { background: #e2e8f0; color: #0f172a; }
+  @media print { .warn, .row { display: none; } body { background: #fff; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="warn">📶 इंटरनेट या website अभी नहीं मिल रही। नीचे इस फ़ोन पर बची <b>आज की list</b> है। नए मरीज़ काग़ज़ पर लिखें, net आने पर app में डाल दें।<br /><small>No internet / site unreachable. Below is today's list saved on this device.</small></p>
+  <div class="row">
+    <button onclick="location.reload()">↻ फिर से कोशिश करें / Retry</button>
+    <button class="sec" onclick="window.print()">🖨️ Print</button>
+  </div>
+  <div id="out"></div>
+</main>
+<script>
+(function () {
+  var out = document.getElementById("out");
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  var data = null;
+  try { data = JSON.parse(localStorage.getItem("ce_today_v1") || "null"); } catch (e) {}
+  var today = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10); // IST date
+  if (!data || !data.rows) { out.innerHTML = '<h1>कोई list सेव नहीं है</h1><p class="muted">Net आने पर "आज की list" page एक बार खोलें, वह इस फ़ोन पर अपने आप सेव हो जाएगी।</p>'; return; }
+  var old = data.date !== today;
+  var html = "<h1>" + esc(data.clinic) + " · " + esc(data.date) + "</h1>";
+  html += '<p class="muted">सेव हुई: ' + esc(new Date(data.savedAt).toLocaleString("hi-IN")) + (old ? " · ⚠️ यह आज की नहीं, पुरानी list है" : "") + "</p>";
+  html += "<table><tr><th>#</th><th>समय</th><th>नाम</th><th>मोबाइल</th><th>तकलीफ़</th></tr>";
+  data.rows.forEach(function (r) {
+    var cls = r.status === "done" || r.status === "missed" ? ' class="done"' : "";
+    html += "<tr" + cls + '><td class="tok">' + esc(r.token) + "</td><td>" + esc(r.time) + "</td><td>" + esc(r.name) + (r.age != null ? " (" + esc(r.age) + ")" : "") + "</td><td>" + esc(r.phone) + "</td><td>" + esc(r.complaint) + "</td></tr>";
+  });
+  out.innerHTML = html + "</table>";
+})();
+</script>
+</body>
+</html>

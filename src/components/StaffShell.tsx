@@ -11,6 +11,7 @@ import { getPlanState } from "@/lib/subscription";
 import Link from "next/link";
 import { aiConfigured } from "@/lib/ai";
 import { AiManager } from "./os/AiManager";
+import { OfflineHelper } from "./OfflineToday";
 
 const NAV: Record<Staff["role"], { href: string; key: DictKey; icon: NavItem["icon"] }[]> = {
   attender: [
@@ -94,6 +95,7 @@ export async function StaffShell({
           <p className="mt-4 text-center font-brand text-[11px] tracking-[0.25em] text-slate-500">CLINIC EASY · AI CLINIC OS</p>
         </footer>
       </div>
+      <OfflineHelper />
       <AiManager role={staff.role} mode={!aiConfigured() ? "key" : plan.pro ? "on" : "pro"} />
     </div>
   );

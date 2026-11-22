@@ -70,8 +70,12 @@ body {
   @apply rounded-xl bg-emerald-50 p-4 text-lg text-emerald-800 ring-1 ring-emerald-200;
 }
 
+.print-only { display: none; }
 @media print {
   .no-print { display: none !important; }
+  .print-only { display: table !important; }
+  .os { background: #fff !important; color: #000 !important; }
+  .os .print-only * { color: #000 !important; }
   body { background: white; }
   .card { box-shadow: none; }
 }
