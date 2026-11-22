@@ -7,7 +7,7 @@ import { formatDate, formatTime, todayIST } from "@/lib/dates";
 import { Counters, countStatuses } from "@/components/Counters";
 import { LiveRefresh } from "@/components/LiveRefresh";
 import { StatusBadge } from "@/components/StatusBadge";
-import { MissedButton } from "./MissedButton";
+import { ArrivedButton, MissedButton } from "./MissedButton";
 import { ComplaintEdit } from "./ComplaintEdit";
 import { FeeButton } from "@/components/FeeButton";
 import { rupees } from "@/lib/money";
@@ -73,10 +73,14 @@ export default async function TodayPage() {
               <span className="text-sm text-slate-500">
                 {formatTime(r.slot_time)} · {t(r.source === "qr" ? "source_qr" : "source_attender")}
               </span>
+              {r.status === "booked" && r.source === "qr" && (
+                <span className="block text-sm font-semibold text-teal-800">{t("homeNotArrived")}</span>
+              )}
               <ComplaintEdit appointmentId={r.id} complaint={r.complaint} />
             </span>
             <span className="flex shrink-0 flex-col items-end gap-1">
               <StatusBadge status={r.status} t={t} />
+              {r.status === "booked" && <ArrivedButton id={r.id} />}
               {canMarkMissed && ["booked", "waiting", "in_room"].includes(r.status) && <MissedButton id={r.id} />}
             </span>
             {r.status !== "missed" && (

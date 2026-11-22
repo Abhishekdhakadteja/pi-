@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { cleanName, isValidDate, normalizePhone, parseAge, parseDays } from "@/lib/validate";
 import { addDays, courseDates, formatTime, monthEnd, periodRange, todayIST, weekStart } from "@/lib/dates";
-import { queueView } from "@/lib/queue";
+import { last4Matches, queueView } from "@/lib/queue";
 import { fillTemplate, isStopMessage, isValidTemplate } from "@/lib/reminder-text";
 
 describe("phone validation (India, 10 digits)", () => {
@@ -68,10 +68,30 @@ describe("India dates", () => {
 
 describe("live queue view", () => {
   const q = { now_running: 5, pending_tokens: [6, 7, 8, 9], done_tokens: [1, 2, 3, 4] };
-  it("patients ahead", () => expect(queueView(q, 9)).toEqual({ ahead: 3, state: "wait" }));
+  it("patients ahead", () => expect(queueView(q, 9)).toEqual({ ahead: 3, state: "wait", home: false }));
   it("2 numbers away -> be ready", () => expect(queueView(q, 7).state).toBe("soon"));
   it("my turn -> go in", () => expect(queueView(q, 5).state).toBe("go_in"));
   it("done", () => expect(queueView(q, 2).state).toBe("done"));
+});
+
+describe("booked from home: called first", () => {
+  const q = { now_running: 5, pending_tokens: [6, 7, 8, 9, 12], done_tokens: [1, 2, 3, 4], home_tokens: [8, 12] };
+  it("only other home bookings count as ahead", () => expect(queueView(q, 12)).toEqual({ ahead: 1, state: "soon", home: true }));
+  it("first home booking has nobody ahead", () => expect(queueView(q, 8).ahead).toBe(0));
+  it("walk-in still counts everyone before", () => expect(queueView(q, 9)).toEqual({ ahead: 3, state: "wait", home: false }));
+  it("old rows without home_tokens work", () =>
+    expect(queueView({ now_running: 5, pending_tokens: [6, 7, 8, 9], done_tokens: [], home_tokens: null }, 9).ahead).toBe(3));
+});
+
+describe("reminder link: last 4 digits", () => {
+  it("matches", () => expect(last4Matches("9876543210", "3210")).toBe(true));
+  it("ignores spaces", () => expect(last4Matches("9876543210", " 32 10 ")).toBe(true));
+  it("wrong digits", () => expect(last4Matches("9876543210", "3211")).toBe(false));
+  it("needs exactly 4 digits", () => {
+    expect(last4Matches("9876543210", "210")).toBe(false);
+    expect(last4Matches("9876543210", "9876543210")).toBe(false);
+    expect(last4Matches("9876543210", "")).toBe(false);
+  });
 });
 
 describe("reminder message", () => {

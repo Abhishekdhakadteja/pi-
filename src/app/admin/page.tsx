@@ -16,7 +16,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const supabase = await supabaseServer();
   const { data: clinic } = await supabase
     .from("clinics")
-    .select("name, address, phone, slots_per_day, opening_time, closing_time, upi_id, default_fee, booking_otp")
+    .select("name, address, phone, slots_per_day, opening_time, closing_time, upi_id, default_fee, booking_otp, home_priority")
     .eq("id", staff.clinic_id)
     .single();
   // Separate query: these columns come from the public-directory migration. If it is not run yet,
