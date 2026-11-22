@@ -7,6 +7,8 @@ import { cleanName, cleanText, normalizePhone } from "@/lib/validate";
 import { isValidUpiId } from "@/lib/share";
 import { parseAmount } from "@/lib/money";
 import type { ErrorCode } from "@/lib/i18n";
+import { cleanCity } from "@/lib/health/links";
+import { isSpecialtyId } from "@/lib/health/specialties";
 
 type Res = { ok: true } | { ok: false; error: ErrorCode };
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -41,6 +43,32 @@ export async function updateClinic(form: FormData): Promise<Res> {
       upi_id: upiRaw || null,
       default_fee: fee,
       booking_otp: form.get("booking_otp") === "on",
+    })
+    .eq("id", staff.clinic_id);
+  if (error) return { ok: false, error: "err_generic" };
+  await audit(staff, "update", "clinics", staff.clinic_id);
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/** Public doctor finder (/health/doctors): show this clinic to common people in its city. */
+export async function updatePublicListing(form: FormData): Promise<Res> {
+  const staff = await assertRole(["admin"]);
+  const listed = form.get("public_listed") === "on";
+  const city = cleanCity(form.get("city"), "");
+  const specialty = String(form.get("specialty") ?? "");
+  const doctor = cleanName(form.get("doctor_name"));
+  if (listed && (city.length < 2 || !isSpecialtyId(specialty))) return { ok: false, error: "err_generic" };
+  const supabase = await supabaseServer();
+  const { error } = await supabase
+    .from("clinics")
+    .update({
+      public_listing: listed,
+      // city must be 2-60 letters (doctor_signup constraint); keep the old value when left empty.
+      ...(city.length >= 2 ? { city } : {}),
+      // Keep a sign-up specialty (e.g. ayurveda, homeo) when the form leaves it empty.
+      ...(isSpecialtyId(specialty) ? { specialty } : {}),
+      doctor_name: doctor || null,
     })
     .eq("id", staff.clinic_id);
   if (error) return { ok: false, error: "err_generic" };

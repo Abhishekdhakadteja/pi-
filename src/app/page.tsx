@@ -102,6 +102,19 @@ export default async function Home() {
           <Link href="/pricing" className="mt-4 text-sm font-semibold text-amber-200 underline decoration-amber-300/50 underline-offset-4 hover:text-amber-100">
             {lang === "hi" ? "✦ Clinic Easy Pro: लॉन्च ऑफ़र, 90% तक छूट →" : "✦ Clinic Easy Pro: launch offer, up to 90% off →"}
           </Link>
+          <Link
+            href="/health"
+            data-testid="landing-health"
+            className="mt-5 flex w-full max-w-md items-center gap-3 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-left text-emerald-50 hover:bg-emerald-400/15 sm:max-w-lg"
+          >
+            <span className="text-3xl" aria-hidden>
+              🧑‍🤝‍🧑
+            </span>
+            <span>
+              <b className="block">{lang === "hi" ? "मरीज़ / आम लोग? डॉक्टर खोजें और मेरा दिन बनाएं" : "Patient or family? Find a doctor & plan your day"}</b>
+              <span className="text-sm text-emerald-100/80">{lang === "hi" ? "बीमारी लिखें → सही विशेषज्ञ → कॉल / WhatsApp / ऑनलाइन बुकिंग · मुफ़्त" : "Type your problem → right specialist → call / WhatsApp / online booking · free"}</span>
+            </span>
+          </Link>
 
           <ul className="mt-8 flex flex-wrap justify-center gap-2">
             {c.pills.map((p) => (

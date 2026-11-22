@@ -230,6 +230,27 @@ export async function setClinicPlan(
   return { ok: true, until };
 }
 
+/**
+ * Patient Health Pro (₹499/month): after the patient pays (UPI/WhatsApp), the owner makes a signed
+ * activation link and sends it on WhatsApp. No database row: the link itself carries the expiry.
+ */
+export async function makePatientProLink(
+  phone: string,
+  months: number,
+): Promise<{ ok: true; link: string; whatsapp: string; until: string } | { ok: false; error: string }> {
+  await assertOwner();
+  const { makeActivationCode } = await import("@/lib/health/patient-pro");
+  const digits = String(phone ?? "").replace(/\D/g, "").slice(-10);
+  if (!/^[6-9]\d{9}$/.test(digits)) return { ok: false, error: "सही 10 अंकों का मोबाइल नंबर डालें।" };
+  const m = Math.floor(Number(months));
+  if (!Number.isInteger(m) || m < 1 || m > 24) return { ok: false, error: "1 से 24 महीने।" };
+  const code = makeActivationCode(digits, m);
+  const link = `${serverEnv.appUrl()}/health/pro/activate?code=${encodeURIComponent(code)}`;
+  const until = new Date(Date.now() + (m * 30 + 3) * 86400000).toISOString().slice(0, 10);
+  const text = `नमस्ते! आपका Clinic Easy Health Pro चालू करने का लिंक (${until} तक):\n${link}\n\nइसे उसी फोन पर खोलें जिस पर ऐप इस्तेमाल करना है।`;
+  return { ok: true, link, until, whatsapp: `https://wa.me/91${digits}?text=${encodeURIComponent(text)}` };
+}
+
 /** Owner switches on a self sign-up after checking the doctor (free "team check" mode). Returns the WhatsApp text for the doctor. */
 export async function approveSignup(clinicId: string): Promise<{ ok: true; message: string; phone: string | null } | { ok: false; error: string }> {
   const owner = await assertOwner();

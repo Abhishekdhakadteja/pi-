@@ -5,6 +5,7 @@ import { getT } from "@/lib/lang-server";
 import { AiBrief } from "@/components/os/AiBrief";
 import { supabaseServer } from "@/lib/supabase/server";
 import { ClinicForm } from "./ClinicForm";
+import { PublicListingForm } from "./PublicListingForm";
 import { getOwner } from "@/lib/owner";
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
@@ -18,6 +19,13 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     .select("name, address, phone, slots_per_day, opening_time, closing_time, upi_id, default_fee, booking_otp")
     .eq("id", staff.clinic_id)
     .single();
+  // Separate query: these columns come from the public-directory migration. If it is not run yet,
+  // the section is simply hidden instead of breaking the settings page.
+  const { data: listing } = await supabase
+    .from("clinics")
+    .select("public_listing, city, specialty, doctor_name")
+    .eq("id", staff.clinic_id)
+    .maybeSingle();
   return (
     <StaffShell staff={staff} denied={!!sp.denied}>
       <h1 className="mb-4 text-2xl font-bold">{t("settings")}</h1>
@@ -41,6 +49,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <h2 className="mb-3 text-xl font-bold">{t("clinicSettings")}</h2>
           {clinic && <ClinicForm clinic={clinic} />}
         </section>
+        {listing && (
+          <section className="card">
+            <PublicListingForm listing={listing} />
+          </section>
+        )}
       </div>
     </StaffShell>
   );

@@ -7,6 +7,7 @@ import { logout } from "@/app/login/actions";
 import { BrandMark } from "@/components/BrandMark";
 import { NewClinicForm, ClinicPauseButton, ClinicPlanForm, SignupReview } from "./OwnerForms";
 import { signupRef, specialtyLabel } from "@/lib/signup";
+import { PatientProForm } from "./PatientProForm";
 import { planState, type ClinicPlanRow } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "Owner · Clinic Easy", robots: { index: false } };
@@ -160,6 +161,14 @@ export default async function OwnerPage() {
           Doctor मोबाइल नंबर से login करेगा। उसी doctor का email Admin login बनेगा (settings, staff, UPI के लिए)। Attender optional है।
         </p>
         <NewClinicForm />
+      </section>
+
+      <section className="card mb-6">
+        <h2 className="mb-1 text-xl font-bold">✨ मरीज़ Health Pro चालू करें (₹499/महीना)</h2>
+        <p className="mb-4 text-sm text-slate-500">
+          मरीज़ ने UPI से पेमेंट किया? मोबाइल और महीने डालें, लिंक WhatsApp पर भेजें। लिंक खोलते ही उस फोन पर Pro चालू हो जाएगा।
+        </p>
+        <PatientProForm />
       </section>
 
       <h2 className="mb-3 text-xl font-bold">सभी clinics</h2>
