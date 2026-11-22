@@ -6,6 +6,7 @@ import { formatDate, formatTime } from "@/lib/dates";
 import { normalizePhone } from "@/lib/validate";
 import type { ErrorCode } from "@/lib/i18n";
 import type { BookResult } from "@/lib/types";
+import { Turnstile } from "@/components/Turnstile";
 import {
   addFamilyMember,
   confirmBooking,
@@ -48,6 +49,7 @@ export function BookingFlow({
   const [booking, setBooking] = useState<BookResult | null>(null);
   const [error, setError] = useState<ErrorCode | "err_network" | null>(null);
   const [pending, start] = useTransition();
+  const [human, setHuman] = useState("");
 
   function run<R extends { ok: boolean }>(fn: () => Promise<R>, then: (v: Extract<R, { ok: true }>) => void) {
     setError(null);
@@ -101,7 +103,7 @@ export function BookingFlow({
               });
               return;
             }
-            run(() => sendOtp(slug, phone), (r) => {
+            run(() => sendOtp(slug, phone, human), (r) => {
               setPhone(r.phone);
               setStep("otp");
             });
@@ -121,6 +123,7 @@ export function BookingFlow({
               autoFocus
             />
           </div>
+          {otpRequired && <Turnstile onToken={setHuman} lang={lang} />}
           <button className="btn-primary" disabled={pending}>{pending ? t("loading") : otpRequired ? t("sendOtp") : t("continueBtn")}</button>
         </form>
       )}
@@ -327,7 +330,12 @@ function AddMember({
       </div>
       <label className="flex items-start gap-3 rounded-xl bg-amber-50 p-3 ring-1 ring-amber-200">
         <input type="checkbox" className="mt-1 h-7 w-7 shrink-0 accent-teal-700" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-        <span>{t("consentText")}</span>
+        <span>
+          {t("consentText")}{" "}
+          <Link href="/privacy" target="_blank" className="font-semibold text-teal-700 underline">
+            Privacy Policy
+          </Link>
+        </span>
       </label>
       {err && !consent && <p className="error-box">{t("consentRequired")}</p>}
       <button className="btn-primary" disabled={pending}>{t("addPatient")}</button>

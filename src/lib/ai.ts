@@ -26,7 +26,7 @@ If the record is thin, say so in one bullet. Plain text, each bullet starting wi
 /** Returns bullet lines, or null when AI is not connected. Throws on API failure. */
 export async function summarizePatient(record: PatientRecord, lang: Lang): Promise<string[] | null> {
   if (!aiConfigured()) return null;
-  const client = new Anthropic({ timeout: 45_000, maxRetries: 1 });
+  const client = new Anthropic({ timeout: 25_000, maxRetries: 1 });
   const language = lang === "hi" ? "Write in simple Hindi (Devanagari), keeping medicine names in English." : "Write in simple English.";
   const response = await client.beta.messages.create({
     // Haiku 5.5: the summary only restates recorded facts, so the cheapest model is enough

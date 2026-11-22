@@ -56,7 +56,7 @@ const en = {
   female: "Female",
   other: "Other",
   address: "Area / village / city",
-  consentText: "Patient agrees to be contacted by SMS or WhatsApp for appointments and reminders.",
+  consentText: "Patient agrees that the clinic keeps this record for treatment, and to be contacted by SMS or WhatsApp for appointments and reminders. Reminders can be stopped at any time.",
   consentRequired: "Please tick the consent box.",
   choosePatient: "Choose patient",
   bookToday: "Book today",
@@ -87,6 +87,10 @@ const en = {
   markMissed: "Missed",
   confirmMissed: "Mark this patient as missed?",
   noPatientsToday: "No patients today yet.",
+  printList: "Print list",
+  voiceDeskHint: "Tap the mic next to a box and speak. Check the yellow boxes before saving.",
+  voiceComplaint: "Speak the problem",
+  savedOffline: "Saved on this device: opens even without internet",
   source_qr: "QR",
   source_attender: "Desk",
   live: "Live",
@@ -187,7 +191,8 @@ const en = {
   err_generic: "Something went wrong. Please try again.",
   err_network: "No internet connection. Please try again.",
   err_otp: "Wrong or expired OTP. Please try again.",
-  err_otp_rate: "Too many OTP requests. Please wait 10 minutes.",
+  err_otp_rate: "Too many OTP requests. Please wait a while, or call the clinic.",
+  err_human: "Please complete the check above (it confirms you are a person), then try again.",
   err_slot_taken: "This time was just taken. Please pick another.",
   err_past: "This time has already passed.",
   err_not_allowed: "You are not allowed to open this page.",
@@ -353,7 +358,7 @@ const hi: Dict = {
   female: "महिला",
   other: "अन्य",
   address: "मोहल्ला / गाँव / शहर",
-  consentText: "मरीज़ अपॉइंटमेंट और रिमाइंडर के लिए SMS या WhatsApp पर संपर्क के लिए सहमत है।",
+  consentText: "मरीज़ सहमत है कि clinic इलाज के लिए यह रिकॉर्ड रखे, और अपॉइंटमेंट व रिमाइंडर के लिए SMS या WhatsApp पर संपर्क करे। रिमाइंडर कभी भी बंद करवा सकते हैं।",
   consentRequired: "कृपया सहमति वाला बॉक्स टिक करें।",
   choosePatient: "मरीज़ चुनें",
   bookToday: "आज बुक करें",
@@ -383,6 +388,10 @@ const hi: Dict = {
   markMissed: "नहीं आए",
   confirmMissed: "क्या यह मरीज़ नहीं आया?",
   noPatientsToday: "आज अभी कोई मरीज़ नहीं।",
+  printList: "List print करें",
+  voiceDeskHint: "box के पास 🎤 दबाकर बोलें। save से पहले पीले box जाँच लें।",
+  voiceComplaint: "तकलीफ़ बोलकर लिखें",
+  savedOffline: "इस फ़ोन पर सेव: net न हो तब भी खुलेगी",
   source_qr: "QR",
   source_attender: "डेस्क",
   live: "लाइव",
@@ -477,7 +486,8 @@ const hi: Dict = {
   err_generic: "कुछ गड़बड़ हो गई। कृपया दोबारा कोशिश करें।",
   err_network: "इंटरनेट नहीं है। कृपया दोबारा कोशिश करें।",
   err_otp: "OTP गलत है या पुराना हो गया। दोबारा कोशिश करें।",
-  err_otp_rate: "बहुत बार OTP माँगा गया। 10 मिनट रुकें।",
+  err_otp_rate: "बहुत बार OTP माँगा गया। थोड़ी देर रुकें, या clinic को फ़ोन करें।",
+  err_human: "ऊपर वाली जाँच पूरी करें (इससे पता चलता है कि आप इंसान हैं), फिर दोबारा कोशिश करें।",
   err_slot_taken: "यह समय अभी किसी ने ले लिया। दूसरा समय चुनें।",
   err_past: "यह समय निकल चुका है।",
   err_not_allowed: "आपको यह पेज खोलने की अनुमति नहीं है।",
@@ -618,6 +628,7 @@ export type ErrorCode =
   | "err_generic"
   | "err_otp"
   | "err_otp_rate"
+  | "err_human"
   | "err_slot_taken"
   | "err_past"
   | "err_not_allowed"

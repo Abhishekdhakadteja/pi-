@@ -3,16 +3,19 @@ import { StaffShell } from "@/components/StaffShell";
 import { getT } from "@/lib/lang-server";
 import { AiBrief } from "@/components/os/AiBrief";
 import { DeskClient } from "./DeskClient";
+import { getPlanState } from "@/lib/subscription";
+import { getProWords } from "@/lib/pro-content";
 
 export default async function DeskPage({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
   const staff = await requireRole(["attender", "admin"]);
   const { t, lang } = await getT();
   const sp = await searchParams;
+  const plan = await getPlanState(staff.clinic_id);
   return (
     <StaffShell staff={staff} denied={!!sp.denied}>
       <h1 className="mb-4 text-2xl font-bold">{t("attenderDesk")}</h1>
       <AiBrief staff={staff} lang={lang} compact />
-      <DeskClient />
+      <DeskClient voice={plan.pro} voiceLocked={plan.pro ? null : getProWords(lang).voiceDeskLocked} />
     </StaffShell>
   );
 }

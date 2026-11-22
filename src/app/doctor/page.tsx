@@ -153,7 +153,7 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
             lines={briefLines}
             aiOn={aiConfigured() && plan.pro}
             proLocked={!plan.pro ? getProWords(lang).aiProOnly : null}
-            words={{ pbTitle: w.pbTitle, pbAuto: w.pbAuto, pbAi: w.pbAi, pbAiWorking: w.pbAiWorking, pbAiFailed: w.pbAiFailed, pbAiOff: w.pbAiOff, pbAiNote: w.pbAiNote, soon: w.soon }}
+            words={{ pbTitle: w.pbTitle, pbAuto: w.pbAuto, pbAi: w.pbAi, pbAiWorking: w.pbAiWorking, pbAiFailed: w.pbAiFailed, pbAiBudget: w.pbAiBudget, pbAiBusy: w.pbAiBusy, pbAiLimit: w.pbAiLimit, pbAiOff: w.pbAiOff, pbAiNote: w.pbAiNote, soon: w.soon }}
           />
 
           <section className="card">

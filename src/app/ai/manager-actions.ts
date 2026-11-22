@@ -5,7 +5,7 @@ import { todayIST } from "@/lib/dates";
 import { DAILY_QUESTION_LIMIT, MAX_HISTORY_TURNS, MAX_QUESTION_CHARS } from "@/lib/ai-manager/tools-def";
 import type { Turn } from "@/lib/ai-manager/agent";
 
-export type AskResult = { ok: true; text: string } | { ok: false; error: "not_allowed" | "ai_off" | "pro" | "limit" | "empty" | "failed" };
+export type AskResult = { ok: true; text: string } | { ok: false; error: "not_allowed" | "ai_off" | "pro" | "limit" | "empty" | "failed" | "budget" | "busy" };
 
 /** Keeps only well-formed text turns, newest last, starting with a user turn. */
 function cleanHistory(raw: unknown): Turn[] {
@@ -59,7 +59,10 @@ export async function askClinicAI(question: string, history: unknown): Promise<A
     await audit(staff, "ai_ask", "ai_manager", null, { tools: answer.tools, chars: q.length });
     return { ok: true, text: answer.text };
   } catch (e) {
-    console.error("[ai-manager] failed", e instanceof Error ? e.message : e);
-    return { ok: false, error: "failed" };
+    const { classifyAiError, reportAiFailure } = await import("@/lib/ai-errors");
+    const kind = classifyAiError(e);
+    console.error("[ai-manager] failed", kind, e instanceof Error ? e.message : e);
+    await reportAiFailure("manager", kind, "/ai");
+    return { ok: false, error: kind === "budget" || kind === "key" ? "budget" : kind === "busy" ? "busy" : "failed" };
   }
 }

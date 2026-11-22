@@ -10,6 +10,7 @@ import { addDays, todayIST } from "@/lib/dates";
 import { cleanName, isValidDate, normalizePhone, parseAge } from "@/lib/validate";
 import type { ErrorCode } from "@/lib/i18n";
 import type { BookResult } from "@/lib/types";
+import { clientIp, hashIp, otpLimited, turnstileOk } from "@/lib/otp-guard";
 
 // Public booking page. There is NO staff login here, so every action:
 //  1. finds the clinic by its public slug,
@@ -19,7 +20,6 @@ import type { BookResult } from "@/lib/types";
 
 const SESSION_TTL = 2 * 60 * 60; // 2 hours
 const OTP_TTL_MIN = 10;
-const MAX_SENDS_PER_10_MIN = 3;
 const MAX_ATTEMPTS = 5;
 
 type Fail = { ok: false; error: ErrorCode };
@@ -54,22 +54,39 @@ export async function startWithoutOtp(slug: string, phoneInput: string): Promise
   return { ok: true, phone };
 }
 
-export async function sendOtp(slug: string, phoneInput: string): Promise<{ ok: true; phone: string } | Fail> {
+export async function sendOtp(slug: string, phoneInput: string, humanToken?: string): Promise<{ ok: true; phone: string } | Fail> {
   const clinic = await clinicBySlug(slug);
   if (!clinic) return { ok: false, error: "err_generic" };
   const phone = normalizePhone(phoneInput);
   if (!phone) return { ok: false, error: "err_phone" };
+  const ip = await clientIp();
+  if (!(await turnstileOk(humanToken, ip))) return { ok: false, error: "err_human" };
+  const ipHash = hashIp(ip);
   const db = supabaseAdmin();
 
-  const since = new Date(Date.now() - 10 * 60_000).toISOString();
-  const { count } = await db.from("patient_otps").select("id", { count: "exact", head: true }).eq("phone", phone).gte("created_at", since);
-  if ((count ?? 0) >= MAX_SENDS_PER_10_MIN) return { ok: false, error: "err_otp_rate" };
+  // Every SMS costs money: limit per number, per device/network and per clinic (see otp-guard.ts).
+  const ago = (ms: number) => new Date(Date.now() - ms).toISOString();
+  const count = async (col: "phone" | "ip_hash" | "clinic_id", val: string | null, ms: number) => {
+    if (!val) return 0;
+    const { count: n } = await db.from("patient_otps").select("id", { count: "exact", head: true }).eq(col, val).gte("created_at", ago(ms));
+    return n ?? 0;
+  };
+  const [phone10, phoneDay, ip10, ipDay, clinicHour, clinicDay] = await Promise.all([
+    count("phone", phone, 10 * 60_000),
+    count("phone", phone, 86400_000),
+    count("ip_hash", ipHash, 10 * 60_000),
+    count("ip_hash", ipHash, 86400_000),
+    count("clinic_id", clinic.id, 3600_000),
+    count("clinic_id", clinic.id, 86400_000),
+  ]);
+  if (otpLimited({ phone10, phoneDay, ip10, ipDay, clinicHour, clinicDay })) return { ok: false, error: "err_otp_rate" };
 
   const code = String(randomInt(100000, 1000000));
   const { error } = await db.from("patient_otps").insert({
     clinic_id: clinic.id,
     phone,
     code_hash: hashCode(phone, code),
+    ip_hash: ipHash,
     expires_at: new Date(Date.now() + OTP_TTL_MIN * 60_000).toISOString(),
   });
   if (error) return { ok: false, error: "err_generic" };

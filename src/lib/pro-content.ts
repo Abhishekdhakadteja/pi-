@@ -69,6 +69,7 @@ const hi = {
   aiProOnly: "AI पेशेंट सारांश Pro में। अनलॉक करें →",
   briefLocked: "AI ब्रीफ़ Pro में: किसकी दवा खत्म, किसका follow-up, आज क्या करना है।",
   voiceLocked: "बोलकर नोट्स Pro में",
+  voiceDeskLocked: "बोलकर form भरना Pro में",
   agentLocked: "Pro",
   history: "भुगतान",
 };
@@ -140,6 +141,7 @@ const en: ProWords = {
   aiProOnly: "AI patient summary is in Pro. Unlock →",
   briefLocked: "The AI brief is in Pro: whose medicine is ending, who is due, what to do today.",
   voiceLocked: "Voice notes are in Pro",
+  voiceDeskLocked: "Filling forms by voice is in Pro",
   agentLocked: "Pro",
   history: "Payments",
 };

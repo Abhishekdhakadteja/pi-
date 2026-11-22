@@ -9,6 +9,9 @@ type Words = {
   pbAi: string;
   pbAiWorking: string;
   pbAiFailed: string;
+  pbAiBudget: string;
+  pbAiBusy: string;
+  pbAiLimit: string;
   pbAiOff: string;
   pbAiNote: string;
   soon: string;
@@ -30,7 +33,7 @@ export function PatientBrief({
   words: Words;
 }) {
   const [ai, setAi] = useState<string[] | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
   const [pending, start] = useTransition();
   return (
     <section className="card os-scan relative overflow-hidden border-violet-400/30" data-testid="patient-brief">
@@ -63,7 +66,7 @@ export function PatientBrief({
             <p className="mt-2 text-xs text-violet-200/80">{w.pbAiNote}</p>
           </div>
         )}
-        {failed && <p className="error-box mt-3 text-base">{w.pbAiFailed}</p>}
+        {failed && <p className="error-box mt-3 text-base">{failed}</p>}
 
         {aiOn ? (
           !ai && (
@@ -72,10 +75,17 @@ export function PatientBrief({
               disabled={pending}
               onClick={() =>
                 start(async () => {
-                  setFailed(false);
-                  const r = await aiPatientSummary(appointmentId);
-                  if (r.ok) setAi(r.lines);
-                  else setFailed(true);
+                  setFailed(null);
+                  try {
+                    const r = await aiPatientSummary(appointmentId);
+                    if (r.ok) setAi(r.lines);
+                    else
+                      setFailed(
+                        r.error === "ai_budget" ? w.pbAiBudget : r.error === "ai_busy" ? w.pbAiBusy : r.error === "ai_limit" ? w.pbAiLimit : w.pbAiFailed,
+                      );
+                  } catch {
+                    setFailed(w.pbAiFailed);
+                  }
                 })
               }
               className="btn-small mt-3 w-full gap-2 bg-gradient-to-r from-violet-500 to-cyan-500 text-white"

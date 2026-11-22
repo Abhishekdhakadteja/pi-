@@ -70,8 +70,14 @@ body {
   @apply rounded-xl bg-emerald-50 p-4 text-lg text-emerald-800 ring-1 ring-emerald-200;
 }
 
+.print-only { display: none; }
+/* Filled by voice: amber ring until a person checks it (types in the field). */
+[data-voice="1"] { box-shadow: 0 0 0 3px #f59e0b !important; }
 @media print {
   .no-print { display: none !important; }
+  .print-only { display: table !important; }
+  .os { background: #fff !important; color: #000 !important; }
+  .os .print-only * { color: #000 !important; }
   body { background: white; }
   .card { box-shadow: none; }
 }

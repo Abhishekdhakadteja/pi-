@@ -146,6 +146,8 @@ export function cleanSearch(q: string): string {
 
 /** Per-clinic fair-use limit on AI मैनेजर questions per day. */
 export const DAILY_QUESTION_LIMIT = { pro: 150, pro_max: 300 } as const;
+/** AI patient summaries per clinic per day (a busy clinic sees ~60 patients). */
+export const SUMMARY_DAILY_LIMIT = { pro: 150, pro_max: 300 } as const;
 export const MAX_QUESTION_CHARS = 500;
 export const MAX_HISTORY_TURNS = 8;
 /** Most tool rounds Claude may take for one question before we stop and answer with what we have. */

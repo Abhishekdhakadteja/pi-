@@ -4,6 +4,8 @@ import Link from "next/link";
 import type { Lang } from "@/lib/i18n";
 import { SPECIALTIES } from "@/lib/signup";
 import { PasswordInput } from "@/components/PasswordInput";
+import { LegalLinks } from "@/components/LegalLinks";
+import { Turnstile } from "@/components/Turnstile";
 import { registerDoctor, resendSignupCode, verifySignupCode, type RegisterResult } from "./actions";
 import { SIGNUP_WORDS } from "./words";
 
@@ -228,9 +230,14 @@ export function SignupForm({ lang, channels }: { lang: Lang; channels: { email: 
         <input type="checkbox" name="terms" required className="mt-1 h-5 w-5 shrink-0" />
         <span className="text-sm text-slate-700">{w.terms}</span>
       </label>
+      <LegalLinks className="-mt-2 pl-8 [&_a]:text-teal-700" />
 
+      <Turnstile onToken={noop} lang={lang} />
       {error && <p className="error-box" role="alert">{error}</p>}
       <button className="btn-primary" disabled={pending}>{pending ? w.wait : w.submit}</button>
     </form>
   );
 }
+
+// The widget puts its token in a hidden "cf-turnstile-response" field of this form by itself.
+const noop = () => {};

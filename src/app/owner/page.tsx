@@ -82,11 +82,25 @@ async function loadPendingSignups(): Promise<PendingSignup[]> {
   return error ? [] : ((data ?? []) as PendingSignup[]);
 }
 
+type ErrorRow = { id: number; created_at: string; source: string; path: string | null; message: string };
+
+/** Errors of the last 24 hours from the app's own log (src/lib/error-log.ts). Table missing -> null. */
+async function loadErrors(): Promise<{ total: number; rows: ErrorRow[] } | null> {
+  const since = new Date(Date.now() - 86400_000).toISOString();
+  const { data, count, error } = await supabaseAdmin()
+    .from("app_errors")
+    .select("id, created_at, source, path, message", { count: "exact" })
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(15);
+  return error ? null : { total: count ?? 0, rows: (data ?? []) as ErrorRow[] };
+}
+
 const ROLE_HI: Record<string, string> = { doctor: "Doctor", admin: "Admin", attender: "Attender" };
 
 export default async function OwnerPage() {
   const owner = await requireOwner();
-  const [all, signups] = await Promise.all([loadClinics(), loadPendingSignups()]);
+  const [all, signups, errors] = await Promise.all([loadClinics(), loadPendingSignups(), loadErrors()]);
   const pendingIds = new Set(signups.map((p) => p.id));
   const clinics = all.filter((c) => !pendingIds.has(c.id));
   const active = clinics.filter((c) => c.staff.some((s) => s.active)).length;
@@ -123,6 +137,30 @@ export default async function OwnerPage() {
           <div className="text-sm text-slate-500">चालू clinics</div>
         </div>
       </div>
+
+      {errors && (
+        <section className={`card mb-6 ${errors.total ? "ring-2 ring-rose-200" : ""}`} data-testid="owner-errors">
+          <h2 className="text-xl font-bold">
+            {errors.total ? `⚠️ पिछले 24 घंटे में ${errors.total} गड़बड़ी` : "✅ पिछले 24 घंटे में कोई गड़बड़ी नहीं"}
+          </h2>
+          {errors.total > 0 && (
+            <>
+              <p className="mt-1 text-sm text-slate-500">यह list Claude को भेजें, वह ठीक करेगा। मरीज़ का नाम/फ़ोन इसमें नहीं होता।</p>
+              <ul className="mt-3 flex flex-col gap-2 text-sm">
+                {errors.rows.map((e) => (
+                  <li key={e.id} className="rounded-xl bg-rose-50 p-2">
+                    <div className="text-xs text-slate-500">
+                      {new Date(e.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} ·{" "}
+                      {e.source === "browser" ? "फ़ोन/browser" : "server"} · {e.path ?? "—"}
+                    </div>
+                    <div className="break-words font-mono text-rose-800">{e.message}</div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </section>
+      )}
 
       {signups.length > 0 && (
         <section className="mb-6">

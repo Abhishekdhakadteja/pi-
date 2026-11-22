@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { getT } from "@/lib/lang-server";
 import { getStaff, ROLE_HOME } from "@/lib/staff";
 import { LangSwitch } from "@/components/LangSwitch";
+import { LegalLinks } from "@/components/LegalLinks";
+import { ClearOfflineCopy } from "@/components/OfflineToday";
 import { BrandMark, BrandName } from "@/components/BrandMark";
 import { LoginForm } from "./LoginForm";
 import { SupportContact } from "@/components/SupportContact";
@@ -31,6 +33,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <p className="relative mt-2 text-lg text-teal-50/90">{t("loginSubtitle")}</p>
       </section>
       <div className="relative z-10 -mt-10 px-4 pb-8">
+        <ClearOfflineCopy />
         <LoginForm initialId={initialId} />
         <Link
           href="/signup"
@@ -49,6 +52,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <div className="mt-6">
           <SupportContact lang={lang} variant="compact" tone="light" />
         </div>
+        <LegalLinks className="mt-4 justify-center [&_a]:text-teal-700" />
       </div>
     </main>
   );

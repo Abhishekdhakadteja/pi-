@@ -4,6 +4,7 @@ import { getLang } from "@/lib/lang-server";
 import { getHealthWords } from "@/lib/health/words";
 import { BrandMark, BrandName } from "@/components/BrandMark";
 import { LangSwitch } from "@/components/LangSwitch";
+import { LegalLinks } from "@/components/LegalLinks";
 
 export const metadata: Metadata = {
   title: "Clinic Easy Health: डॉक्टर खोजें, मेरा दिन",
@@ -12,7 +13,8 @@ export const metadata: Metadata = {
 
 // Shared frame for the public side used by common people (patients and families).
 export default async function HealthLayout({ children }: { children: React.ReactNode }) {
-  const w = getHealthWords(await getLang());
+  const lang = await getLang();
+  const w = getHealthWords(lang);
   return (
     <div className="health min-h-screen bg-[#030712] text-slate-200">
       <div className="pointer-events-none fixed inset-0" aria-hidden>
@@ -49,6 +51,7 @@ export default async function HealthLayout({ children }: { children: React.React
           <Link href="/" className="underline decoration-dotted underline-offset-4 hover:text-white">
             {w.navForDoctors}
           </Link>
+          <LegalLinks className="mt-3 justify-center" />
         </footer>
       </div>
     </div>
