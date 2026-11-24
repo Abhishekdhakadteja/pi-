@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 import { serverEnv } from "@/lib/server-env";
-import { getSender } from "@/lib/messaging";
+import { getSender, smsOtpReady } from "@/lib/messaging";
 
 // One-time codes for doctor sign-up. Each way of sending switches on by itself when its key is set
 // on Netlify, the same as the other paid services:
@@ -19,11 +19,7 @@ export function emailOtpReady(): boolean {
 }
 
 export function mobileOtpReady(): boolean {
-  const p = serverEnv.messagingProvider();
-  if (p === "whatsapp")
-    return !!process.env.WHATSAPP_TOKEN && !!process.env.WHATSAPP_PHONE_NUMBER_ID && !!process.env.WHATSAPP_TEMPLATE;
-  if (p === "msg91") return !!process.env.MSG91_AUTH_KEY && !!process.env.MSG91_TEMPLATE_ID;
-  return p === "log" && process.env.NODE_ENV !== "production"; // local testing: code is printed in the server log
+  return smsOtpReady();
 }
 
 export function availableChannels() {

@@ -104,6 +104,18 @@ export class WhatsAppSender implements MessageSender {
   }
 }
 
+/**
+ * True only when a code can really reach the patient's phone (MSG91 or WhatsApp with its keys).
+ * In the free "manual" mode nothing is sent automatically, so an OTP step would lock patients out.
+ */
+export function smsOtpReady(): boolean {
+  const p = serverEnv.messagingProvider();
+  if (p === "whatsapp")
+    return !!process.env.WHATSAPP_TOKEN && !!process.env.WHATSAPP_PHONE_NUMBER_ID && !!process.env.WHATSAPP_TEMPLATE;
+  if (p === "msg91") return !!process.env.MSG91_AUTH_KEY && !!process.env.MSG91_TEMPLATE_ID;
+  return p === "log" && process.env.NODE_ENV !== "production"; // local testing: code is printed in the server log
+}
+
 export function getSender(): MessageSender {
   switch (serverEnv.messagingProvider()) {
     case "msg91":
