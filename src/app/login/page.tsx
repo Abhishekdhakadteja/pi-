@@ -9,11 +9,11 @@ import { BrandMark, BrandName } from "@/components/BrandMark";
 import { LoginForm } from "./LoginForm";
 import { SupportContact } from "@/components/SupportContact";
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ id?: string; reset?: string }> }) {
   const staff = await getStaff();
   if (staff) redirect(ROLE_HOME[staff.role]);
   const { t, lang } = await getT();
-  const { id } = await searchParams;
+  const { id, reset } = await searchParams;
   const initialId = typeof id === "string" && /^[6-9][0-9]{9}$/.test(id) ? id : "";
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col">
@@ -34,7 +34,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       </section>
       <div className="relative z-10 -mt-10 px-4 pb-8">
         <ClearOfflineCopy />
-        <LoginForm initialId={initialId} />
+        <LoginForm initialId={initialId} resetDone={reset === "1"} />
         <Link
           href="/signup"
           className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 text-base shadow-sm ring-1 ring-teal-100 hover:ring-teal-300"
