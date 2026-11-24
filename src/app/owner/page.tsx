@@ -5,7 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { addDays, todayIST } from "@/lib/dates";
 import { logout } from "@/app/login/actions";
 import { BrandMark } from "@/components/BrandMark";
-import { NewClinicForm, ClinicPauseButton, ClinicPlanForm, SignupReview } from "./OwnerForms";
+import { NewClinicForm, ClinicPauseButton, ClinicPlanForm, ResetPasswordForm, SignupReview } from "./OwnerForms";
 import { signupRef, specialtyLabel } from "@/lib/signup";
 import { PatientProForm } from "./PatientProForm";
 import { planState, type ClinicPlanRow } from "@/lib/plans";
@@ -199,6 +199,14 @@ export default async function OwnerPage() {
           Doctor मोबाइल नंबर से login करेगा। उसी doctor का email Admin login बनेगा (settings, staff, UPI के लिए)। Attender optional है।
         </p>
         <NewClinicForm />
+      </section>
+
+      <section className="card mb-6" data-testid="owner-reset">
+        <h2 className="mb-1 text-xl font-bold">🔑 पासवर्ड रीसेट (टीम की मदद से)</h2>
+        <p className="mb-4 text-sm text-slate-500">
+          Doctor ईमेल OTP से खुद रीसेट नहीं कर पा रहा? पहले फ़ोन / WhatsApp पर पहचान जाँचें, फिर यहाँ नया अस्थायी पासवर्ड बनाकर उसी को भेजें।
+        </p>
+        <ResetPasswordForm />
       </section>
 
       <section className="card mb-6">

@@ -6,6 +6,8 @@ import { assertOwner } from "@/lib/owner";
 import { makeSlug, welcomeMessage } from "@/lib/owner-utils";
 import { serverEnv } from "@/lib/server-env";
 import { cleanName, cleanText, normalizePhone } from "@/lib/validate";
+import { ownerResetText, parseResetId } from "@/lib/password-reset";
+import { tempPassword } from "@/lib/password-reset-server";
 
 export type CreateClinicResult =
   | { ok: true; clinicName: string; message: string }
@@ -284,4 +286,49 @@ export async function rejectSignup(clinicId: string): Promise<{ ok: boolean; err
   const ok = await removePendingClinic(supabaseAdmin(), clinicId);
   revalidatePath("/owner");
   return ok ? { ok } : { ok, error: "हटाया नहीं जा सका।" };
+}
+
+export type OwnerResetResult =
+  | { ok: true; name: string; clinicName: string; loginId: string; password: string; message: string; phone: string | null }
+  | { ok: false; error: string };
+
+/**
+ * Fallback when a doctor or staff member cannot use the email OTP (no email, email lost):
+ * the Clinic Easy team checks who they are on a call / WhatsApp, then sets a one-time
+ * temporary password here. It is shown once on this screen only (never stored or logged).
+ */
+export async function ownerResetPassword(form: FormData): Promise<OwnerResetResult> {
+  const owner = await assertOwner();
+  const id = parseResetId(form.get("id"));
+  if (!id) return { ok: false, error: "सही 10 अंकों का मोबाइल नंबर या ईमेल लिखें।" };
+  const db = supabaseAdmin();
+  const q = db.from("users").select("id, clinic_id, name, phone, email").limit(1);
+  const { data: u } = await (id.kind === "phone" ? q.eq("phone", id.value) : q.eq("email", id.value)).maybeSingle();
+  if (!u) return { ok: false, error: "इस मोबाइल / ईमेल का कोई login नहीं मिला।" };
+  const { data: clinic } = await db.from("clinics").select("name").eq("id", u.clinic_id).maybeSingle();
+
+  const password = tempPassword();
+  const { error } = await db.auth.admin.updateUserById(u.id, { password });
+  if (error) {
+    console.error("ownerResetPassword failed", error.message);
+    return { ok: false, error: "पासवर्ड नहीं बदल पाया। दोबारा कोशिश करें।" };
+  }
+  await db.from("audit_log").insert({
+    clinic_id: u.clinic_id,
+    user_id: owner.id,
+    action: "owner_reset_password",
+    record_table: "users",
+    record_id: u.id,
+    details: { by: owner.email },
+  });
+  const loginId = u.phone ?? u.email;
+  return {
+    ok: true,
+    name: u.name,
+    clinicName: clinic?.name ?? "",
+    loginId,
+    password,
+    phone: u.phone,
+    message: ownerResetText({ name: u.name, loginId, password, appUrl: serverEnv.appUrl() }),
+  };
 }

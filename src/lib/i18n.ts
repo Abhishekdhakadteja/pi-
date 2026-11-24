@@ -31,6 +31,8 @@ const en = {
   pendingSignup: "Your sign-up is not verified yet. Finish the OTP, or message the Clinic Easy team on WhatsApp.",
   newDoctor: "New doctor?",
   signupLink: "Register your clinic, free",
+  forgotPassword: "Forgot password?",
+  passwordChanged: "Password changed. Log in with your new password.",
 
   // roles / nav
   attenderDesk: "Attender desk",
@@ -336,6 +338,8 @@ const hi: Dict = {
   pendingSignup: "आपका रजिस्ट्रेशन अभी verify नहीं हुआ है। OTP पूरा करें, या Clinic Easy टीम को WhatsApp करें।",
   newDoctor: "नए डॉक्टर हैं?",
   signupLink: "अपनी clinic रजिस्टर करें, मुफ़्त",
+  forgotPassword: "पासवर्ड भूल गए?",
+  passwordChanged: "पासवर्ड बदल गया। अब नए पासवर्ड से login करें।",
 
   attenderDesk: "अटेंडर डेस्क",
   todaysList: "आज की लिस्ट",

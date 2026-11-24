@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState, useTransition } from "react";
 import { PasswordInput } from "@/components/PasswordInput";
-import { approveSignup, createClinic, rejectSignup, setClinicActive, setClinicPlan } from "./actions";
+import { approveSignup, createClinic, ownerResetPassword, rejectSignup, setClinicActive, setClinicPlan, type OwnerResetResult } from "./actions";
 
 export function NewClinicForm() {
   const ref = useRef<HTMLFormElement>(null);
@@ -215,5 +215,60 @@ export function SignupReview({ clinicId }: { clinicId: string }) {
       </div>
       {error && <p className="error-box">{error}</p>}
     </div>
+  );
+}
+
+export function ResetPasswordForm() {
+  const ref = useRef<HTMLFormElement>(null);
+  const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<Extract<OwnerResetResult, { ok: true }> | null>(null);
+  if (done) {
+    const href = done.phone
+      ? `https://wa.me/91${done.phone}?text=${encodeURIComponent(done.message)}`
+      : `https://wa.me/?text=${encodeURIComponent(done.message)}`;
+    return (
+      <div className="flex flex-col gap-3" data-testid="owner-reset-done">
+        <p className="ok-box">
+          ✓ {done.name} ({done.clinicName}) का पासवर्ड बदल दिया। यह पासवर्ड सिर्फ़ अभी दिख रहा है, दोबारा नहीं दिखेगा।
+        </p>
+        <div className="rounded-2xl bg-teal-50 p-4 text-center">
+          <div className="text-sm text-slate-500">Login: {done.loginId}</div>
+          <div className="select-all font-mono text-2xl font-bold tracking-wider text-teal-800">{done.password}</div>
+        </div>
+        <a className="btn-primary" target="_blank" rel="noopener noreferrer" href={href}>
+          WhatsApp पर भेजें
+        </a>
+        <button type="button" className="btn-secondary" onClick={() => setDone(null)}>
+          ठीक है, बंद करें
+        </button>
+      </div>
+    );
+  }
+  return (
+    <form
+      ref={ref}
+      className="flex flex-col gap-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        if (!window.confirm("पक्का? पुराना पासवर्ड तुरंत बंद हो जाएगा। पहले फ़ोन / WhatsApp पर पहचान ज़रूर जाँच लें।")) return;
+        setError(null);
+        start(async () => {
+          const r = await ownerResetPassword(fd).catch(() => ({ ok: false as const, error: "कुछ गड़बड़ हुई।" }));
+          if (r.ok) {
+            ref.current?.reset();
+            setDone(r);
+          } else setError(r.error);
+        });
+      }}
+    >
+      <div>
+        <label className="label" htmlFor="reset-id">Doctor / स्टाफ़ का login मोबाइल या ईमेल</label>
+        <input id="reset-id" name="id" className="input" required inputMode="email" autoComplete="off" />
+      </div>
+      {error && <p className="error-box">{error}</p>}
+      <button className="btn-primary" disabled={pending}>{pending ? "कृपया रुकें…" : "नया अस्थायी पासवर्ड बनाएँ"}</button>
+    </form>
   );
 }
