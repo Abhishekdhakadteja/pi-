@@ -16,7 +16,7 @@ type Clinic = {
   booking_otp: boolean;
 };
 
-export function ClinicForm({ clinic }: { clinic: Clinic }) {
+export function ClinicForm({ clinic, otpAvailable }: { clinic: Clinic; otpAvailable: boolean }) {
   const { t } = useT();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<"saved" | ErrorCode | null>(null);
@@ -69,9 +69,10 @@ export function ClinicForm({ clinic }: { clinic: Clinic }) {
         </div>
       </div>
       <label className="flex items-center gap-3 text-lg">
-        <input type="checkbox" name="booking_otp" defaultChecked={clinic.booking_otp} className="h-6 w-6" />
+        <input type="checkbox" name="booking_otp" defaultChecked={clinic.booking_otp} disabled={!otpAvailable} className="h-6 w-6" />
         {t("bookingOtp")}
       </label>
+      {!otpAvailable && <p className="text-sm text-slate-600">{t("bookingOtpOff")}</p>}
       {msg && <p className={msg === "saved" ? "ok-box" : "error-box"}>{t(msg)}</p>}
       <button className="btn-primary" disabled={pending}>{pending ? t("loading") : t("save")}</button>
     </form>

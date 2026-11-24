@@ -7,6 +7,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { ClinicForm } from "./ClinicForm";
 import { PublicListingForm } from "./PublicListingForm";
 import { getOwner } from "@/lib/owner";
+import { smsOtpReady } from "@/lib/messaging";
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
   const staff = await requireRole(["admin"]);
@@ -47,7 +48,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         </div>
         <section className="card">
           <h2 className="mb-3 text-xl font-bold">{t("clinicSettings")}</h2>
-          {clinic && <ClinicForm clinic={clinic} />}
+          {clinic && <ClinicForm clinic={clinic} otpAvailable={smsOtpReady()} />}
         </section>
         {listing && (
           <section className="card">

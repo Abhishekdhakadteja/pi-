@@ -9,6 +9,7 @@ import { parseAmount } from "@/lib/money";
 import type { ErrorCode } from "@/lib/i18n";
 import { cleanCity } from "@/lib/health/links";
 import { isSpecialtyId } from "@/lib/health/specialties";
+import { smsOtpReady } from "@/lib/messaging";
 
 type Res = { ok: true } | { ok: false; error: ErrorCode };
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -42,7 +43,8 @@ export async function updateClinic(form: FormData): Promise<Res> {
       closing_time: closing,
       upi_id: upiRaw || null,
       default_fee: fee,
-      booking_otp: form.get("booking_otp") === "on",
+      // The switch is greyed out while no SMS service is connected; keep the saved choice then.
+      ...(smsOtpReady() ? { booking_otp: form.get("booking_otp") === "on" } : {}),
     })
     .eq("id", staff.clinic_id);
   if (error) return { ok: false, error: "err_generic" };

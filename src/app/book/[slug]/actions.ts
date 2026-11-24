@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { serverEnv } from "@/lib/server-env";
-import { getSender } from "@/lib/messaging";
+import { getSender, smsOtpReady } from "@/lib/messaging";
 import { makeToken } from "@/lib/signed";
 import { COOKIE, getSession, isVerified, resolveReminderCode } from "./session";
 import { addDays, todayIST } from "@/lib/dates";
@@ -27,7 +27,8 @@ type Fail = { ok: false; error: ErrorCode };
 async function clinicBySlug(slug: string) {
   if (!/^[a-z0-9-]{3,40}$/.test(slug)) return null;
   const { data } = await supabaseAdmin().from("clinics").select("id, name, slots_per_day, booking_otp").eq("slug", slug).maybeSingle();
-  return data;
+  // OTP only counts when an SMS/WhatsApp service can really deliver it; otherwise patients would be locked out.
+  return data ? { ...data, booking_otp: data.booking_otp && smsOtpReady() } : null;
 }
 
 function hashCode(phone: string, code: string) {

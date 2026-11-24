@@ -4,6 +4,7 @@ import { getT } from "@/lib/lang-server";
 import { LangSwitch } from "@/components/LangSwitch";
 import { getSession, resolveReminderCode } from "./session";
 import { BookingFlow } from "./BookingFlow";
+import { smsOtpReady } from "@/lib/messaging";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,7 @@ export default async function BookPage({
         <LangSwitch />
       </div>
       <h1 className="text-2xl font-bold">{t("bookTitle")}</h1>
-      <BookingFlow slug={slug} verifiedPhone={session?.phone ?? null} preselect={preselect} reminderToken={r ?? null} otpRequired={clinic.booking_otp} />
+      <BookingFlow slug={slug} verifiedPhone={session?.phone ?? null} preselect={preselect} reminderToken={r ?? null} otpRequired={clinic.booking_otp && smsOtpReady()} />
     </main>
   );
 }
