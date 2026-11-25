@@ -181,14 +181,14 @@ export async function setClinicActive(clinicId: string, active: boolean): Promis
  */
 export async function setClinicPlan(
   clinicId: string,
-  plan: "pro" | "pro_max",
+  plan: "basic" | "pro" | "pro_max",
   months: number,
   amountRupees: number,
 ): Promise<{ ok: boolean; error?: string; until?: string }> {
   const owner = await assertOwner();
-  const { extendPlan, isPaidPlan } = await import("@/lib/plans");
+  const { extendPlan, isBuyablePlan } = await import("@/lib/plans");
   const { getClinicPlanRow } = await import("@/lib/subscription");
-  if (!isPaidPlan(plan) || !Number.isInteger(months) || months < 0 || months > 36) return { ok: false, error: "गलत प्लान या महीने।" };
+  if (!isBuyablePlan(plan) || !Number.isInteger(months) || months < 0 || months > 36) return { ok: false, error: "गलत प्लान या महीने।" };
   const amount = Math.max(0, Math.round(Number(amountRupees) || 0));
   const db = supabaseAdmin();
   const row = await getClinicPlanRow(clinicId);

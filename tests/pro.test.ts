@@ -109,3 +109,22 @@ describe("Razorpay signatures", () => {
     expect(verifyWebhookSignature(body, null, "wh")).toBe(false);
   });
 });
+
+describe("Basic online payment", () => {
+  it("Basic can be bought online, Pro gating stays the same", async () => {
+    const { isBuyablePlan, isPaidPlan, amountPaise, extendPlan, planState } = await import("@/lib/plans");
+    expect(isBuyablePlan("basic")).toBe(true);
+    expect(isBuyablePlan("pro_max")).toBe(true);
+    expect(isBuyablePlan("gold")).toBe(false);
+    expect(isPaidPlan("basic")).toBe(false);
+    expect(amountPaise("basic", "month")).toBe(58882); // ₹499 + 18% GST
+    expect(amountPaise("basic", "year")).toBe(589882);
+    const now = new Date("2026-11-25T00:00:00Z");
+    const until = extendPlan({ plan: "basic", plan_until: "2026-12-10T00:00:00Z" }, "basic", "month", now);
+    expect(until.toISOString().slice(0, 10)).toBe("2027-01-10");
+    // a paid Basic clinic is still Basic: no AI unlocked by paying for Basic
+    const st = planState({ plan: "basic", plan_until: until.toISOString() }, now);
+    expect(st.tier).toBe("basic");
+    expect(st.pro).toBe(false);
+  });
+});
