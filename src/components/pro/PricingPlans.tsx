@@ -3,10 +3,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { Lang } from "@/lib/i18n";
-import { LAUNCH_OFFER_ENDS, PLANS, TOP_UPS, pctOff, type BuyablePlanId, type Cycle, type PaidPlanId, type PlanId } from "@/lib/plans";
+import { BASIC_PAYMENT_BUTTON_ID, LAUNCH_OFFER_ENDS, PLANS, TOP_UPS, pctOff, type BuyablePlanId, type Cycle, type PaidPlanId, type PlanId } from "@/lib/plans";
 import { BASIC_FEATURES, PRO_FEATURES, getProWords, rupees } from "@/lib/pro-content";
 import { confirmProPayment, createProOrder, startProTrial } from "@/app/pro/actions";
 import { ProBadge, ProEmblem } from "@/components/ProBadge";
+import { RazorpayPaymentButton } from "@/components/pro/RazorpayPaymentButton";
 
 export type PricingContext = {
   mode: "public" | "app";
@@ -113,6 +114,8 @@ export function PricingPlans({ lang, ctx }: { lang: Lang; ctx: PricingContext })
     if (plan !== "basic" && ctx.current === plan && !yearly) return <span className="btn w-full cursor-default border border-white/15 bg-white/5 text-slate-200">✓ {w.current}</span>;
     if (!ctx.canBuy) return <p className="text-center text-sm text-amber-200/90">{w.onlyDoctorAdmin}</p>;
     if (!ctx.razorpayOn) {
+      // Basic monthly: the Razorpay Payment Button works without API keys.
+      if (plan === "basic" && !yearly) return <RazorpayPaymentButton buttonId={BASIC_PAYMENT_BUTTON_ID} note={w.payButtonNote} />;
       return ctx.whatsapp ? (
         <a href={`${ctx.whatsapp.split("?")[0]}?text=${encodeURIComponent(`${plan === "basic" ? "Clinic Easy Basic" : PLANS[plan].name} (${yearly ? "yearly" : "monthly"})`)}`} target="_blank" rel="noreferrer" className={cls}>
           {w.ctaWhatsApp}
@@ -212,9 +215,12 @@ export function PricingPlans({ lang, ctx }: { lang: Lang; ctx: PricingContext })
                 </div>
               ) : null
             ) : (
-              <Link href="/login" className="btn w-full border border-white/15 bg-white/5 text-white hover:bg-white/10">
-                {w.ctaBasic}
-              </Link>
+              <div className="flex flex-col gap-3">
+                <Link href="/login" className="btn w-full border border-white/15 bg-white/5 text-white hover:bg-white/10">
+                  {w.ctaBasic}
+                </Link>
+                {!yearly && <RazorpayPaymentButton buttonId={BASIC_PAYMENT_BUTTON_ID} note={w.payButtonNote} />}
+              </div>
             )}
           </div>
         </section>

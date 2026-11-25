@@ -17,6 +17,9 @@ export const GATEWAY_FEE = 0.02 * 1.18;
 export const PRO_TRIAL_DAYS = 14;
 export const BASIC_TRIAL_DAYS = 30;
 /** Last day of the launch prices. Change this one line to extend or end the offer. */
+/** Razorpay Payment Button (dashboard-made, public id) for the Basic monthly fee. Works without API keys. */
+export const BASIC_PAYMENT_BUTTON_ID = "pl_U4UL80fPmuBrp3";
+
 export const LAUNCH_OFFER_ENDS = "2027-01-31";
 
 /** What one unit of each paid service costs US (₹, after GST/forex), from the providers' rate cards. */
