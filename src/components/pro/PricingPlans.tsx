@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { Lang } from "@/lib/i18n";
-import { LAUNCH_OFFER_ENDS, PLANS, TOP_UPS, pctOff, type Cycle, type PaidPlanId, type PlanId } from "@/lib/plans";
+import { LAUNCH_OFFER_ENDS, PLANS, TOP_UPS, pctOff, type BuyablePlanId, type Cycle, type PaidPlanId, type PlanId } from "@/lib/plans";
 import { BASIC_FEATURES, PRO_FEATURES, getProWords, rupees } from "@/lib/pro-content";
 import { confirmProPayment, createProOrder, startProTrial } from "@/app/pro/actions";
 import { ProBadge, ProEmblem } from "@/components/ProBadge";
@@ -47,7 +47,7 @@ export function PricingPlans({ lang, ctx }: { lang: Lang; ctx: PricingContext })
   const [, start] = useTransition();
   const router = useRouter();
 
-  const buy = (plan: PaidPlanId, cycle: Cycle) =>
+  const buy = (plan: BuyablePlanId, cycle: Cycle) =>
     start(async () => {
       setMsg(null);
       setBusy(`${plan}-${cycle}`);
@@ -95,10 +95,12 @@ export function PricingPlans({ lang, ctx }: { lang: Lang; ctx: PricingContext })
 
   const app = ctx.mode === "app";
 
-  function BuyCta({ plan, label }: { plan: PaidPlanId; label: string }) {
+  function BuyCta({ plan, label }: { plan: BuyablePlanId; label: string }) {
     const cycle: Cycle = yearly ? "year" : plan === "pro" && ctx.firstMonthOk !== false && PLANS.pro.firstMonth ? "first_month" : "month";
     const cls =
-      plan === "pro" && !(app && ctx.canStartTrial && ctx.canBuy)
+      plan === "basic"
+        ? "btn w-full border border-cyan-300/40 bg-cyan-400/10 text-cyan-50 hover:bg-cyan-400/20"
+        : plan === "pro" && !(app && ctx.canStartTrial && ctx.canBuy)
         ? "btn w-full bg-gradient-to-r from-amber-300 via-pink-400 to-violet-500 text-[#140a24] shadow-[0_0_40px_-8px_rgba(245,158,11,0.8)] hover:brightness-110"
         : "btn w-full border border-amber-200/40 bg-white/5 text-amber-50 hover:bg-white/10";
     if (!app) {
@@ -108,11 +110,11 @@ export function PricingPlans({ lang, ctx }: { lang: Lang; ctx: PricingContext })
         </Link>
       );
     }
-    if (ctx.current === plan && !yearly) return <span className="btn w-full cursor-default border border-white/15 bg-white/5 text-slate-200">✓ {w.current}</span>;
+    if (plan !== "basic" && ctx.current === plan && !yearly) return <span className="btn w-full cursor-default border border-white/15 bg-white/5 text-slate-200">✓ {w.current}</span>;
     if (!ctx.canBuy) return <p className="text-center text-sm text-amber-200/90">{w.onlyDoctorAdmin}</p>;
     if (!ctx.razorpayOn) {
       return ctx.whatsapp ? (
-        <a href={`${ctx.whatsapp.split("?")[0]}?text=${encodeURIComponent(`Clinic Easy ${PLANS[plan].name} (${yearly ? "yearly" : "monthly"})`)}`} target="_blank" rel="noreferrer" className={cls}>
+        <a href={`${ctx.whatsapp.split("?")[0]}?text=${encodeURIComponent(`${plan === "basic" ? "Clinic Easy Basic" : PLANS[plan].name} (${yearly ? "yearly" : "monthly"})`)}`} target="_blank" rel="noreferrer" className={cls}>
           {w.ctaWhatsApp}
         </a>
       ) : (
@@ -204,7 +206,10 @@ export function PricingPlans({ lang, ctx }: { lang: Lang; ctx: PricingContext })
           <div className="mt-5">
             {app ? (
               ctx.current === "basic" ? (
-                <span className="btn w-full cursor-default border border-white/15 bg-white/5 text-slate-200">✓ {w.current}</span>
+                <div className="flex flex-col gap-2">
+                  <span className="btn w-full cursor-default border border-white/15 bg-white/5 text-slate-200">✓ {w.current}</span>
+                  <BuyCta plan="basic" label={w.ctaPayBasic} />
+                </div>
               ) : null
             ) : (
               <Link href="/login" className="btn w-full border border-white/15 bg-white/5 text-white hover:bg-white/10">

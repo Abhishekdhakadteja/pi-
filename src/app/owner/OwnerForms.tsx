@@ -124,14 +124,15 @@ export function ClinicPauseButton({ clinicId, active }: { clinicId: string; acti
 export function ClinicPlanForm({ clinicId, label }: { clinicId: string; label: string }) {
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);
-  const [plan, setPlan] = useState<"pro" | "pro_max">("pro");
+  const [plan, setPlan] = useState<"basic" | "pro" | "pro_max">("pro");
   const [months, setMonths] = useState(1);
   const [amount, setAmount] = useState(2999);
   return (
     <div className="mt-3 rounded-xl bg-amber-50 p-3 ring-1 ring-amber-200">
       <div className="mb-2 text-sm font-semibold text-amber-900">Pro: {label}</div>
       <div className="flex flex-wrap items-end gap-2 text-sm">
-        <select className="input w-auto" value={plan} onChange={(e) => setPlan(e.target.value as "pro" | "pro_max")} aria-label="Plan">
+        <select className="input w-auto" value={plan} onChange={(e) => setPlan(e.target.value as "basic" | "pro" | "pro_max")} aria-label="Plan">
+          <option value="basic">Basic (₹499)</option>
           <option value="pro">Pro</option>
           <option value="pro_max">Pro Max</option>
         </select>
@@ -150,7 +151,8 @@ export function ClinicPlanForm({ clinicId, label }: { clinicId: string; label: s
           onClick={() =>
             start(async () => {
               const r = await setClinicPlan(clinicId, plan, months, amount);
-              setMsg(r.ok ? `✓ ${months === 0 ? "Pro बंद" : `Pro चालू, ${r.until?.slice(0, 10)} तक`}` : (r.error ?? "Error"));
+              const name = plan === "basic" ? "Basic" : "Pro";
+              setMsg(r.ok ? `✓ ${months === 0 ? "Pro बंद" : `${name} भुगतान दर्ज, ${r.until?.slice(0, 10)} तक`}` : (r.error ?? "Error"));
             })
           }
         >

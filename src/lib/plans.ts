@@ -6,6 +6,8 @@ import type { IntegrationId } from "./integrations";
 
 export type PlanId = "basic" | "pro" | "pro_max";
 export type PaidPlanId = Exclude<PlanId, "basic">;
+/** Plans a clinic can pay for online: Basic ₹499 too (it is the launch plan), plus Pro / Pro Max. */
+export type BuyablePlanId = PlanId;
 export type Cycle = "month" | "year" | "first_month";
 
 /** GST added on top of every price shown (SaaS, 18%). */
@@ -157,7 +159,7 @@ export function aiAllowed(state: Pick<PlanState, "pro">): boolean {
 export const pctOff = (mrp: number, price: number) => Math.round((1 - price / mrp) * 100);
 
 /** Price (₹, before GST) of one purchase. */
-export function priceOf(plan: PaidPlanId, cycle: Cycle): number {
+export function priceOf(plan: BuyablePlanId, cycle: Cycle): number {
   const p = PLANS[plan];
   if (cycle === "year") return p.year;
   if (cycle === "first_month") {
@@ -168,7 +170,7 @@ export function priceOf(plan: PaidPlanId, cycle: Cycle): number {
 }
 
 /** Amount Razorpay charges, in paise, GST included. */
-export function amountPaise(plan: PaidPlanId, cycle: Cycle): number {
+export function amountPaise(plan: BuyablePlanId, cycle: Cycle): number {
   return Math.round(priceOf(plan, cycle) * (1 + GST_RATE) * 100);
 }
 
@@ -236,7 +238,7 @@ export function planState(row: ClinicPlanRow | null | undefined, now: Date = new
 }
 
 /** New paid-until date after a purchase. Renewing the same plan stacks on the time left. */
-export function extendPlan(row: ClinicPlanRow | null | undefined, plan: PaidPlanId, cycle: Cycle, now: Date = new Date()): Date {
+export function extendPlan(row: ClinicPlanRow | null | undefined, plan: BuyablePlanId, cycle: Cycle, now: Date = new Date()): Date {
   const current = row?.plan_until ? new Date(row.plan_until) : null;
   const start = row?.plan === plan && current && current > now ? current : now;
   const end = new Date(start);
@@ -247,6 +249,9 @@ export function extendPlan(row: ClinicPlanRow | null | undefined, plan: PaidPlan
 
 export function isPaidPlan(x: unknown): x is PaidPlanId {
   return x === "pro" || x === "pro_max";
+}
+export function isBuyablePlan(x: unknown): x is BuyablePlanId {
+  return x === "basic" || isPaidPlan(x);
 }
 export function isCycle(x: unknown): x is Cycle {
   return x === "month" || x === "year" || x === "first_month";

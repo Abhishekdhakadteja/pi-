@@ -1,6 +1,6 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { amountPaise, extendPlan, planState, type ClinicPlanRow, type Cycle, type PaidPlanId, type PlanState } from "@/lib/plans";
+import { amountPaise, extendPlan, planState, type ClinicPlanRow, type BuyablePlanId, type Cycle, type PlanState } from "@/lib/plans";
 
 // Clinic Easy Pro: reading a clinic's plan, Razorpay orders, and switching Pro on after payment.
 // Razorpay is key-gated like the other paid services: it switches on when RAZORPAY_KEY_ID and
@@ -47,7 +47,7 @@ export async function hasPaidBefore(clinicId: string): Promise<boolean> {
 
 export type NewOrder = { orderId: string; amount: number; keyId: string };
 
-export async function createRazorpayOrder(clinicId: string, plan: PaidPlanId, cycle: Cycle, fetcher: typeof fetch = fetch): Promise<NewOrder> {
+export async function createRazorpayOrder(clinicId: string, plan: BuyablePlanId, cycle: Cycle, fetcher: typeof fetch = fetch): Promise<NewOrder> {
   const keyId = process.env.RAZORPAY_KEY_ID!.trim();
   const secret = process.env.RAZORPAY_KEY_SECRET!.trim();
   const amount = amountPaise(plan, cycle);
@@ -95,7 +95,7 @@ export async function fulfilOrder(orderId: string, paymentId: string, clinicId?:
   if (!claimed?.length) return { ok: true };
 
   const row = await getClinicPlanRow(pay.clinic_id);
-  const until = extendPlan(row, pay.plan as PaidPlanId, pay.cycle as Cycle).toISOString();
+  const until = extendPlan(row, pay.plan as BuyablePlanId, pay.cycle as Cycle).toISOString();
   await db.from("clinics").update({ plan: pay.plan, plan_until: until }).eq("id", pay.clinic_id);
   await db.from("subscription_payments").update({ period_end: until }).eq("id", pay.id);
   await db.from("audit_log").insert({

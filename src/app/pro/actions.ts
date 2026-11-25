@@ -2,8 +2,8 @@
 import { revalidatePath } from "next/cache";
 import { assertRole } from "@/lib/staff";
 import { supabaseServer } from "@/lib/supabase/server";
-import { isCycle, isPaidPlan, PLANS } from "@/lib/plans";
-import { createRazorpayOrder, fulfilOrder, hasPaidBefore, razorpayConfigured } from "@/lib/subscription";
+import { isBuyablePlan, isCycle, PLANS } from "@/lib/plans";
+import { createRazorpayOrder, fulfilOrder, getPlanState, hasPaidBefore, razorpayConfigured } from "@/lib/subscription";
 import { verifyCheckoutSignature } from "@/lib/razorpay-sign";
 
 type Err = "not_allowed" | "trial_used" | "offline" | "bad_plan" | "failed";
@@ -33,7 +33,13 @@ export async function createProOrder(plan: string, cycle: string): Promise<{ ok:
     return { ok: false, error: "not_allowed" };
   }
   if (!razorpayConfigured()) return { ok: false, error: "offline" };
-  if (!isPaidPlan(plan) || !isCycle(cycle)) return { ok: false, error: "bad_plan" };
+  if (!isBuyablePlan(plan) || !isCycle(cycle)) return { ok: false, error: "bad_plan" };
+  if (plan === "basic") {
+    // Basic has no first-month offer, and a clinic already on paid Pro does not need Basic.
+    if (cycle === "first_month") return { ok: false, error: "bad_plan" };
+    const st = await getPlanState(staff.clinic_id);
+    if (st.pro && !st.trial) return { ok: false, error: "bad_plan" };
+  }
   if (cycle === "first_month") {
     // 90% off is only for a clinic's very first Pro month.
     if (PLANS[plan].firstMonth == null || (await hasPaidBefore(staff.clinic_id))) return { ok: false, error: "bad_plan" };
@@ -41,7 +47,7 @@ export async function createProOrder(plan: string, cycle: string): Promise<{ ok:
   try {
     const o = await createRazorpayOrder(staff.clinic_id, plan, cycle);
     const label = cycle === "year" ? "12 months" : "1 month";
-    return { ok: true, checkout: { ...o, description: `${PLANS[plan].name} · ${label}` } };
+    return { ok: true, checkout: { ...o, description: `${plan === "basic" ? "Clinic Easy Basic" : PLANS[plan].name} · ${label}` } };
   } catch (e) {
     console.error("[pro] order failed", e instanceof Error ? e.message : e);
     return { ok: false, error: "failed" };
