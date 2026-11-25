@@ -7,6 +7,7 @@ import { LAUNCH_OFFER_ENDS, PLANS, TOP_UPS, pctOff, type BuyablePlanId, type Cyc
 import { BASIC_FEATURES, PRO_FEATURES, getProWords, rupees } from "@/lib/pro-content";
 import { confirmProPayment, createProOrder, startProTrial } from "@/app/pro/actions";
 import { ProBadge, ProEmblem } from "@/components/ProBadge";
+import { RazorpayButton } from "@/components/pro/RazorpayButton";
 
 export type PricingContext = {
   mode: "public" | "app";
@@ -208,13 +209,16 @@ export function PricingPlans({ lang, ctx }: { lang: Lang; ctx: PricingContext })
               ctx.current === "basic" ? (
                 <div className="flex flex-col gap-2">
                   <span className="btn w-full cursor-default border border-white/15 bg-white/5 text-slate-200">✓ {w.current}</span>
-                  <BuyCta plan="basic" label={w.ctaPayBasic} />
+                  {ctx.razorpayOn ? <BuyCta plan="basic" label={w.ctaPayBasic} /> : <RazorpayButton />}
                 </div>
               ) : null
             ) : (
-              <Link href="/login" className="btn w-full border border-white/15 bg-white/5 text-white hover:bg-white/10">
-                {w.ctaBasic}
-              </Link>
+              <div className="flex flex-col gap-2">
+                <Link href="/login" className="btn w-full border border-white/15 bg-white/5 text-white hover:bg-white/10">
+                  {w.ctaBasic}
+                </Link>
+                <RazorpayButton />
+              </div>
             )}
           </div>
         </section>
