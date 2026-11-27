@@ -94,6 +94,14 @@ export default async function Home() {
               {c.ctaDay}
             </a>
           </div>
+          <div className="mt-3 grid w-full max-w-md grid-cols-2 gap-3 sm:max-w-lg">
+            <Link href="/demo?ref=home" className="btn border border-amber-300/50 bg-amber-300/10 text-amber-50 hover:bg-amber-300/20" data-testid="landing-demo">
+              {lang === "hi" ? "▶ 5 मिनट LIVE डेमो" : "▶ 5-min LIVE demo"}
+            </Link>
+            <Link href="/whatsapp" className="btn border border-emerald-400/50 bg-emerald-500/15 text-emerald-50 hover:bg-emerald-500/25" data-testid="landing-whatsapp">
+              {lang === "hi" ? "💬 WhatsApp पर बात" : "💬 Chat on WhatsApp"}
+            </Link>
+          </div>
           <Link
             href="/signup"
             className="btn mt-3 w-full max-w-md border border-emerald-300/40 bg-emerald-400/10 text-emerald-100 hover:bg-emerald-400/20 sm:max-w-lg"

@@ -105,5 +105,12 @@ export async function fulfilOrder(orderId: string, paymentId: string, clinicId?:
     record_id: pay.id,
     details: { plan: pay.plan, cycle: pay.cycle, until },
   });
+  // Welcome on WhatsApp: automatic only when the Cloud API keys are set; never blocks the payment.
+  try {
+    const { proWelcome, welcomeApiReady } = await import("@/lib/whatsapp-server");
+    if (welcomeApiReady()) await proWelcome(pay.clinic_id, pay.plan, until);
+  } catch (e) {
+    console.error("[welcome] failed", e instanceof Error ? e.message : e);
+  }
   return { ok: true, until };
 }

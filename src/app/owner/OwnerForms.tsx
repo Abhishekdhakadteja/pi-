@@ -127,6 +127,7 @@ export function ClinicPlanForm({ clinicId, label }: { clinicId: string; label: s
   const [plan, setPlan] = useState<"basic" | "pro" | "pro_max">("pro");
   const [months, setMonths] = useState(1);
   const [amount, setAmount] = useState(2999);
+  const [welcome, setWelcome] = useState<{ whatsapp: string; sent: boolean } | null>(null);
   return (
     <div className="mt-3 rounded-xl bg-amber-50 p-3 ring-1 ring-amber-200">
       <div className="mb-2 text-sm font-semibold text-amber-900">Pro: {label}</div>
@@ -151,6 +152,7 @@ export function ClinicPlanForm({ clinicId, label }: { clinicId: string; label: s
           onClick={() =>
             start(async () => {
               const r = await setClinicPlan(clinicId, plan, months, amount);
+              setWelcome(r.ok ? (r.welcome ?? null) : null);
               const name = plan === "basic" ? "Basic" : "Pro";
               setMsg(r.ok ? `✓ ${months === 0 ? "Pro बंद" : `${name} भुगतान दर्ज, ${r.until?.slice(0, 10)} तक`}` : (r.error ?? "Error"));
             })
@@ -160,6 +162,14 @@ export function ClinicPlanForm({ clinicId, label }: { clinicId: string; label: s
         </button>
       </div>
       {msg && <div className="mt-1 text-xs text-amber-900">{msg}</div>}
+      {welcome &&
+        (welcome.sent ? (
+          <div className="mt-1 text-xs text-emerald-800">✓ Welcome मैसेज WhatsApp पर अपने आप चला गया।</div>
+        ) : (
+          <a className="btn-small mt-2 inline-flex bg-emerald-600 text-white" target="_blank" rel="noopener noreferrer" href={welcome.whatsapp} data-testid="welcome-whatsapp">
+            🎉 Doctor को Welcome + डेमो लिंक WhatsApp पर भेजें
+          </a>
+        ))}
     </div>
   );
 }

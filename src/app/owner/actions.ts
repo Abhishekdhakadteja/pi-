@@ -184,7 +184,7 @@ export async function setClinicPlan(
   plan: "basic" | "pro" | "pro_max",
   months: number,
   amountRupees: number,
-): Promise<{ ok: boolean; error?: string; until?: string }> {
+): Promise<{ ok: boolean; error?: string; until?: string; welcome?: { whatsapp: string; sent: boolean } }> {
   const owner = await assertOwner();
   const { extendPlan, isBuyablePlan } = await import("@/lib/plans");
   const { getClinicPlanRow } = await import("@/lib/subscription");
@@ -229,7 +229,11 @@ export async function setClinicPlan(
     details: { plan, months, amount, until, by: owner.email },
   });
   revalidatePath("/owner");
-  return { ok: true, until };
+  if (months === 0) return { ok: true, until };
+  // Welcome message for the doctor: sent by itself with the Cloud API, else a one-tap WhatsApp link.
+  const { proWelcome } = await import("@/lib/whatsapp-server");
+  const w = await proWelcome(clinicId, plan, until).catch(() => null);
+  return { ok: true, until, welcome: w ? { whatsapp: w.whatsapp, sent: w.status === "sent" } : undefined };
 }
 
 /**

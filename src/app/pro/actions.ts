@@ -11,7 +11,8 @@ type Err = "not_allowed" | "trial_used" | "offline" | "bad_plan" | "failed";
 /** Doctor or admin starts the free 14-day Pro trial (once per clinic, enforced in the database). */
 export async function startProTrial(): Promise<{ ok: true } | { ok: false; error: Err }> {
   try {
-    await assertRole(["doctor", "admin"]);
+    const s = await assertRole(["doctor", "admin"]);
+    if (s.demo) return { ok: false, error: "not_allowed" }; // 5-minute demo: no trial, no AI cost
   } catch {
     return { ok: false, error: "not_allowed" };
   }
@@ -32,6 +33,7 @@ export async function createProOrder(plan: string, cycle: string): Promise<{ ok:
   } catch {
     return { ok: false, error: "not_allowed" };
   }
+  if (staff.demo) return { ok: false, error: "not_allowed" };
   if (!razorpayConfigured()) return { ok: false, error: "offline" };
   if (!isBuyablePlan(plan) || !isCycle(cycle)) return { ok: false, error: "bad_plan" };
   if (plan === "basic") {

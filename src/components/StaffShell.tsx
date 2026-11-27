@@ -12,6 +12,7 @@ import Link from "next/link";
 import { aiConfigured } from "@/lib/ai";
 import { AiManager } from "./os/AiManager";
 import { OfflineHelper } from "./OfflineToday";
+import { DemoBanner } from "./DemoBanner";
 
 const NAV: Record<Staff["role"], { href: string; key: DictKey; icon: NavItem["icon"] }[]> = {
   attender: [
@@ -56,6 +57,7 @@ export async function StaffShell({
   return (
     <div className="os min-h-screen">
       <div className="mx-auto min-h-screen max-w-3xl px-4 pb-28">
+        {staff.demo && <DemoBanner exp={staff.demo.exp} lang={lang} />}
         <header className="no-print sticky top-0 z-20 -mx-4 mb-5 border-b border-cyan-400/15 bg-[#030712]/85 px-4 pb-2.5 pt-3 backdrop-blur-xl sm:rounded-b-3xl sm:border-x">
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-3">

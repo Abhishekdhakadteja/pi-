@@ -28,7 +28,13 @@ export default async function ContactPage() {
         <div className="pt-4">
           <TeamContact lang={lang} />
         </div>
-        <p className="mt-8 text-center text-sm">
+        <p className="mt-8 flex flex-wrap justify-center gap-4 text-center text-sm">
+          <Link href="/whatsapp" className="font-semibold text-emerald-300 underline-offset-4 hover:underline">
+            {lang === "hi" ? "💬 WhatsApp QR और चैट" : "💬 WhatsApp QR and chat"}
+          </Link>
+          <Link href="/demo?ref=contact" className="font-semibold text-amber-200 underline-offset-4 hover:underline">
+            {lang === "hi" ? "▶ 5 मिनट का डेमो" : "▶ 5-minute demo"}
+          </Link>
           <Link href="/pricing" className="text-cyan-300 underline-offset-4 hover:underline">
             {lang === "hi" ? "प्लान और कीमतें देखें →" : "See plans and prices →"}
           </Link>

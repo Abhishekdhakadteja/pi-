@@ -3,7 +3,7 @@ import { StaffShell } from "@/components/StaffShell";
 import { getT } from "@/lib/lang-server";
 import { getProWords, rupees } from "@/lib/pro-content";
 import { getPlanState, hasPaidBefore, razorpayConfigured } from "@/lib/subscription";
-import { getSupportContact } from "@/lib/contact";
+import { waLink } from "@/lib/whatsapp";
 import { supabaseServer } from "@/lib/supabase/server";
 import { ProBadge } from "@/components/ProBadge";
 import { PricingPlans } from "@/components/pro/PricingPlans";
@@ -15,7 +15,7 @@ export default async function ProPage() {
   const staff = await requireRole(["attender", "doctor", "admin"]);
   const { lang } = await getT();
   const w = getProWords(lang);
-  const canBuy = staff.role !== "attender";
+  const canBuy = staff.role !== "attender" && !staff.demo;
   const [state, paidBefore] = await Promise.all([getPlanState(staff.clinic_id), hasPaidBefore(staff.clinic_id)]);
   const { data: payments } = canBuy
     ? await (await supabaseServer())
@@ -57,10 +57,14 @@ export default async function ProPage() {
           mode: "app",
           current: state.trial ? undefined : state.tier,
           canBuy,
-          canStartTrial: state.canStartTrial,
+          canStartTrial: state.canStartTrial && !staff.demo,
           firstMonthOk: !paidBefore,
           razorpayOn: razorpayConfigured(),
-          whatsapp: getSupportContact()?.whatsapp || null,
+          whatsapp: waLink(""),
+          clinicName: staff.clinic.name,
+          clinicSlug: staff.clinic.slug,
+          doctorName: staff.role === "doctor" ? staff.name : undefined,
+          demo: !!staff.demo,
         }}
       />
 
