@@ -66,6 +66,9 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
             <h1 className="text-2xl font-bold text-white">{w.endedTitle}</h1>
             <p className="mt-2 text-slate-300">{w.endedSub}</p>
             <div className="mt-5 flex flex-col gap-3">
+              <Link href="/start?step=offer&ref=demo-end" className="btn bg-gradient-to-r from-amber-300 via-pink-400 to-violet-500 text-[#140a24]" data-testid="demo-offer">
+                🎁 {lang === "hi" ? "मेरा प्लान और लॉन्च ऑफ़र" : "My plan and launch offer"}
+              </Link>
               <a href={waLink(helloText(lang).replace("DEMO", "PRO"))} target="_blank" rel="noopener noreferrer" className="btn bg-emerald-500 text-white">
                 💬 {w.wa}
               </a>
@@ -74,6 +77,9 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
               </Link>
               <Link href="/pricing" className="btn border border-white/15 bg-white/5 text-white">
                 {w.plans} →
+              </Link>
+              <Link href="/webinar?ref=demo-end" className="text-sm text-violet-300 underline-offset-4 hover:underline">
+                🎬 {lang === "hi" ? "7 मिनट का वेबिनार भी देखें" : "Also watch the 7-minute webinar"}
               </Link>
               <Link href="/demo" className="text-sm text-cyan-300 underline-offset-4 hover:underline">
                 {w.again}

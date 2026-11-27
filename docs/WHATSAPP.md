@@ -19,3 +19,10 @@
 
 ## Database
 `supabase/migrations/20261127000001_live_demo.sql` (applied 2026-11-27).
+
+## Doctor journey (PR after #28)
+- `/start`: 60-second clinic check-up → estimate (formula shown, `src/lib/funnel.ts`) → recommended plan → demo / webinar → offer → WhatsApp (result prefilled) or sign-up. Answers stay on the doctor's phone (localStorage), so the offer is still there after the demo (`/start?step=offer`).
+- `/webinar`: 7 chapters "a doctor's day", auto-plays, browser voice (speechSynthesis), only live features.
+- `src/lib/funnel-messages.ts`: 12 WhatsApp messages (hello → day 7, then onboarding day 1/3/7). `/owner` → "Doctor को अगला मैसेज" fills name/number and opens WhatsApp.
+- `funnel_events` (migration 20261127000002, applied): anonymous step counts, shown on `/owner` as a 7-day drop-off bar.
+- Rules: real offer date only, estimates labelled, no fake reviews, max one follow-up after silence, STOP honoured.
