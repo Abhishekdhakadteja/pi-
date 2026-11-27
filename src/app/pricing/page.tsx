@@ -37,6 +37,14 @@ export default async function PricingPage() {
             <span className="os-gradient-text">{w.heroTitle}</span>
           </h1>
           <p className="mt-3 max-w-2xl text-lg text-slate-300">{w.heroSub}</p>
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <Link href="/demo?ref=pricing" className="btn-small border border-amber-300/50 bg-amber-300/10 text-amber-50" data-testid="pricing-demo">
+              {lang === "hi" ? "▶ ख़रीदने से पहले 5 मिनट का LIVE डेमो" : "▶ 5-minute LIVE demo before you buy"}
+            </Link>
+            <Link href="/whatsapp" className="btn-small border border-emerald-400/50 bg-emerald-500/15 text-emerald-50">
+              💬 WhatsApp
+            </Link>
+          </div>
         </section>
         <PricingPlans lang={lang} ctx={{ mode: "public" }} />
         <div className="mt-10">

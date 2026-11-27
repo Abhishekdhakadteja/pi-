@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { DEMO_COOKIE, demoCookieExp, isDemoEmail } from "@/lib/demo";
 
 // Keeps the staff login session fresh, and sends logged-out visitors of staff pages to /login.
 // Role checks happen on each page (see src/lib/staff.ts).
@@ -26,6 +27,21 @@ export async function middleware(req: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = req.nextUrl.pathname;
+
+  // 5-minute demo: when its cookie is gone or expired, sign this browser out and show the end screen.
+  if (user && isDemoEmail(user.email) && !path.startsWith("/demo")) {
+    const exp = demoCookieExp(req.cookies.get(DEMO_COOKIE)?.value);
+    if (!exp || exp * 1000 <= Date.now()) {
+      await supabase.auth.signOut({ scope: "local" });
+      const to = req.nextUrl.clone();
+      to.pathname = "/demo";
+      to.search = "?ended=1";
+      const out = NextResponse.redirect(to);
+      res.cookies.getAll().forEach((c) => out.cookies.set(c));
+      out.cookies.delete(DEMO_COOKIE);
+      return out;
+    }
+  }
   if (!user && STAFF_PREFIXES.some((p) => path === p || path.startsWith(p + "/"))) {
     const to = req.nextUrl.clone();
     to.pathname = "/login";

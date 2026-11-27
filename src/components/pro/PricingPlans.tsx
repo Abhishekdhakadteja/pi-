@@ -8,6 +8,7 @@ import { BASIC_FEATURES, PRO_FEATURES, getProWords, rupees } from "@/lib/pro-con
 import { confirmProPayment, createProOrder, startProTrial } from "@/app/pro/actions";
 import { ProBadge, ProEmblem } from "@/components/ProBadge";
 import { RazorpayButton } from "@/components/pro/RazorpayButton";
+import { buyText, waLink } from "@/lib/whatsapp";
 
 export type PricingContext = {
   mode: "public" | "app";
@@ -19,6 +20,12 @@ export type PricingContext = {
   razorpayOn?: boolean;
   /** support WhatsApp link, used to buy Pro while online payment is not connected */
   whatsapp?: string | null;
+  /** used to fill the WhatsApp purchase message (app only) */
+  clinicName?: string;
+  clinicSlug?: string;
+  doctorName?: string;
+  /** 5-minute demo login: buying is switched off */
+  demo?: boolean;
 };
 
 type RazorpayResponse = { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string };
@@ -112,10 +119,17 @@ export function PricingPlans({ lang, ctx }: { lang: Lang; ctx: PricingContext })
       );
     }
     if (plan !== "basic" && ctx.current === plan && !yearly) return <span className="btn w-full cursor-default border border-white/15 bg-white/5 text-slate-200">✓ {w.current}</span>;
+    if (ctx.demo) return <p className="text-center text-sm text-cyan-200/90">{lang === "hi" ? "डेमो में ख़रीद बंद है। डेमो के बाद WhatsApp पर लिखें।" : "Buying is off in the demo. Message us on WhatsApp after it."}</p>;
     if (!ctx.canBuy) return <p className="text-center text-sm text-amber-200/90">{w.onlyDoctorAdmin}</p>;
     if (!ctx.razorpayOn) {
       return ctx.whatsapp ? (
-        <a href={`${ctx.whatsapp.split("?")[0]}?text=${encodeURIComponent(`${plan === "basic" ? "Clinic Easy Basic" : PLANS[plan].name} (${yearly ? "yearly" : "monthly"})`)}`} target="_blank" rel="noreferrer" className={cls}>
+        <a
+          href={waLink(buyText({ plan, cycle, clinicName: ctx.clinicName, clinicSlug: ctx.clinicSlug, doctorName: ctx.doctorName }, lang))}
+          target="_blank"
+          rel="noreferrer"
+          className={cls}
+          data-testid={`wa-buy-${plan}`}
+        >
           {w.ctaWhatsApp}
         </a>
       ) : (
