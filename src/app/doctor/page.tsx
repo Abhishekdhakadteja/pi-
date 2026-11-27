@@ -8,6 +8,7 @@ import { Counters, countStatuses } from "@/components/Counters";
 import { LiveRefresh } from "@/components/LiveRefresh";
 import { CallNextButton, CompleteButton, CourseForm, VisitForm } from "./DoctorForms";
 import { RxForm } from "./RxForm";
+import { ScribePanel } from "./ScribePanel";
 import { AiBrief } from "@/components/os/AiBrief";
 import { PatientBrief } from "@/components/os/PatientBrief";
 import { buildPatientBrief } from "@/lib/ai-brief";
@@ -172,6 +173,8 @@ export default async function DoctorPage({ searchParams }: { searchParams: Promi
               </ul>
             )}
           </section>
+
+          <ScribePanel key={`s-${inRoom.id}`} appointmentId={inRoom.id} state={staff.demo ? "demo" : !plan.pro ? "locked" : aiConfigured() ? "on" : "off"} />
 
           <section className="card">
             <VisitForm key={`v-${inRoom.id}`} appointmentId={inRoom.id} notes={current?.doctor_notes ?? ""} diagnosis={current?.diagnosis ?? ""} voiceLocked={!plan.pro ? getProWords(lang).voiceLocked : null} />

@@ -210,3 +210,50 @@ export async function aiPatientSummary(
     return { ok: false, error: kind === "budget" || kind === "key" ? "ai_budget" : kind === "busy" ? "ai_busy" : "ai_failed" };
   }
 }
+
+export type ScribeResult =
+  | { ok: true; draft: import("@/lib/scribe-parse").ScribeDraft }
+  | { ok: false; error: "ai_off" | "ai_failed" | "ai_budget" | "ai_busy" | "ai_limit" | "ai_empty" | ErrorCode };
+
+/**
+ * AI Scribe (Pro): turns the doctor's dictation into a filled prescription form.
+ * Sends only the dictated words to Claude. Saves nothing: the doctor checks and presses Save.
+ */
+export async function aiScribe(appointmentId: string, dictation: string): Promise<ScribeResult> {
+  const staff = await assertRole(["doctor"]);
+  const { requireProAI } = await import("@/lib/ai-guard");
+  const gate = await requireProAI(staff.clinic_id);
+  if (!gate.ok) return { ok: false, error: "ai_off" };
+  const { MAX_DICTATION_CHARS, normalizeScribe } = await import("@/lib/scribe-parse");
+  const text = cleanText(dictation, MAX_DICTATION_CHARS);
+  if (text.replace(/\s/g, "").length < 6) return { ok: false, error: "ai_empty" };
+  const appt = await loadAppointment(appointmentId, staff.clinic_id);
+  if (!appt) return { ok: false, error: "err_generic" };
+  // Fair use, so one clinic can never run up a big AI bill (each draft ≈ ₹0.05).
+  const { SCRIBE_DAILY_LIMIT } = await import("@/lib/ai-manager/tools-def");
+  const { count } = await (await import("@/lib/supabase/server"))
+    .supabaseAdmin()
+    .from("audit_log")
+    .select("id", { count: "exact", head: true })
+    .eq("clinic_id", staff.clinic_id)
+    .eq("action", "ai_scribe")
+    .gte("time", `${todayIST()}T00:00:00+05:30`);
+  if ((count ?? 0) >= SCRIBE_DAILY_LIMIT[gate.plan.tier === "pro_max" ? "pro_max" : "pro"]) return { ok: false, error: "ai_limit" };
+  const { lang } = await (await import("@/lib/lang-server")).getT();
+  const { draftPrescription } = await import("@/lib/scribe");
+  try {
+    const raw = await draftPrescription(text, lang);
+    if (raw === null) return { ok: false, error: "ai_failed" };
+    const draft = normalizeScribe(raw, text);
+    const { audit } = await import("@/lib/audit");
+    await audit(staff, "ai_scribe", "patients", appt.patient_id, { lines: draft?.lines.length ?? 0, dropped: draft?.dropped.length ?? 0 });
+    if (!draft) return { ok: false, error: "ai_empty" };
+    return { ok: true, draft };
+  } catch (e) {
+    const { classifyAiError, reportAiFailure } = await import("@/lib/ai-errors");
+    const kind = classifyAiError(e);
+    console.error("[ai] scribe failed", kind, e instanceof Error ? e.message : e);
+    await reportAiFailure("scribe", kind, "/doctor");
+    return { ok: false, error: kind === "budget" || kind === "key" ? "ai_budget" : kind === "busy" ? "ai_busy" : "ai_failed" };
+  }
+}
