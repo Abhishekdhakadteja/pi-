@@ -41,6 +41,9 @@ export default async function PricingPage() {
             <Link href="/demo?ref=pricing" className="btn-small border border-amber-300/50 bg-amber-300/10 text-amber-50" data-testid="pricing-demo">
               {lang === "hi" ? "▶ ख़रीदने से पहले 5 मिनट का LIVE डेमो" : "▶ 5-minute LIVE demo before you buy"}
             </Link>
+            <Link href="/start?ref=pricing" className="btn-small border border-pink-300/50 bg-pink-400/10 text-pink-50">
+              {lang === "hi" ? "🩺 कौन सा प्लान मेरे लिए? (60 सेकंड)" : "🩺 Which plan fits me? (60 sec)"}
+            </Link>
             <Link href="/whatsapp" className="btn-small border border-emerald-400/50 bg-emerald-500/15 text-emerald-50">
               💬 WhatsApp
             </Link>

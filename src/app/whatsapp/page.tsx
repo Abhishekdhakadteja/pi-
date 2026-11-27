@@ -66,9 +66,17 @@ export default async function WhatsAppPage() {
           <a href={chat} target="_blank" rel="noopener noreferrer" className="btn mt-5 w-full bg-emerald-500 text-lg text-white hover:bg-emerald-400" data-testid="wa-chat">
             💬 {w.chat}
           </a>
-          <Link href="/demo?ref=wa-page" className="mt-3 text-sm font-semibold text-cyan-300 underline-offset-4 hover:underline">
-            {w.demo}
-          </Link>
+          <div className="mt-3 flex flex-wrap justify-center gap-4 text-sm font-semibold">
+            <Link href="/start?ref=wa-page" className="text-amber-200 underline-offset-4 hover:underline">
+              {lang === "hi" ? "🩺 60 सेकंड क्लिनिक चेकअप" : "🩺 60-second check-up"}
+            </Link>
+            <Link href="/demo?ref=wa-page" className="text-cyan-300 underline-offset-4 hover:underline">
+              {w.demo}
+            </Link>
+            <Link href="/webinar?ref=wa-page" className="text-violet-300 underline-offset-4 hover:underline">
+              {lang === "hi" ? "🎬 7 मिनट वेबिनार" : "🎬 7-min webinar"}
+            </Link>
+          </div>
 
           <div className="card mt-6 w-full p-4">
             <p className="text-sm text-slate-300">{w.scan}</p>

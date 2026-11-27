@@ -8,6 +8,9 @@ import { BrandMark } from "@/components/BrandMark";
 import { NewClinicForm, ClinicPauseButton, ClinicPlanForm, ResetPasswordForm, SignupReview } from "./OwnerForms";
 import { signupRef, specialtyLabel } from "@/lib/signup";
 import { PatientProForm } from "./PatientProForm";
+import { LeadComposer } from "./LeadComposer";
+import { FUNNEL_STEPS } from "@/lib/funnel";
+import { serverEnv } from "@/lib/server-env";
 import { planState, type ClinicPlanRow } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "Owner · Clinic Easy", robots: { index: false } };
@@ -96,11 +99,37 @@ async function loadErrors(): Promise<{ total: number; rows: ErrorRow[] } | null>
   return error ? null : { total: count ?? 0, rows: (data ?? []) as ErrorRow[] };
 }
 
+const STEP_HI: Record<string, string> = {
+  start: "/start खोला",
+  numbers: "नंबर डाले",
+  pains: "परेशानी चुनी",
+  result: "नतीजा देखा",
+  demo: "डेमो बटन",
+  webinar: "वेबिनार",
+  offer: "ऑफ़र देखा",
+  whatsapp: "WhatsApp दबाया",
+  signup: "रजिस्टर दबाया",
+};
+
+/** Doctor journey of the last 7 days: visitors per step + demo logins. Tables missing -> null. */
+async function loadFunnel(): Promise<{ steps: { step: string; n: number }[]; demos: number } | null> {
+  const db = supabaseAdmin();
+  const since = new Date(Date.now() - 7 * 86400_000).toISOString();
+  const [ev, demos] = await Promise.all([
+    db.from("funnel_events").select("step").gte("at", since).limit(5000),
+    db.from("demo_sessions").select("id", { count: "exact", head: true }).gte("started_at", since),
+  ]);
+  if (ev.error) return null;
+  const count = new Map<string, number>();
+  for (const r of ev.data ?? []) count.set(r.step, (count.get(r.step) ?? 0) + 1);
+  return { steps: FUNNEL_STEPS.map((step) => ({ step, n: count.get(step) ?? 0 })), demos: demos.count ?? 0 };
+}
+
 const ROLE_HI: Record<string, string> = { doctor: "Doctor", admin: "Admin", attender: "Attender" };
 
 export default async function OwnerPage() {
   const owner = await requireOwner();
-  const [all, signups, errors] = await Promise.all([loadClinics(), loadPendingSignups(), loadErrors()]);
+  const [all, signups, errors, funnel] = await Promise.all([loadClinics(), loadPendingSignups(), loadErrors(), loadFunnel()]);
   const pendingIds = new Set(signups.map((p) => p.id));
   const clinics = all.filter((c) => !pendingIds.has(c.id));
   const active = clinics.filter((c) => c.staff.some((s) => s.active)).length;
@@ -192,6 +221,40 @@ export default async function OwnerPage() {
           </ul>
         </section>
       )}
+
+      <section className="card mb-6" data-testid="owner-funnel">
+        <h2 className="mb-1 text-xl font-bold">🧭 Doctor journey (पिछले 7 दिन)</h2>
+        <p className="mb-3 text-sm text-slate-500">
+          कितने doctors किस क़दम तक पहुँचे। जहाँ संख्या अचानक गिरे, वही क़दम सुधारना है। लिंक: <b>/start</b> (चेकअप), <b>/webinar</b>, <b>/demo</b>.
+        </p>
+        {funnel ? (
+          <div className="flex flex-col gap-1.5">
+            {funnel.steps.map((s) => {
+              const top = Math.max(1, funnel.steps[0].n);
+              return (
+                <div key={s.step} className="flex items-center gap-2 text-sm">
+                  <span className="w-32 shrink-0 text-slate-600">{STEP_HI[s.step] ?? s.step}</span>
+                  <span className="h-4 rounded bg-gradient-to-r from-teal-500 to-cyan-500" style={{ width: `${Math.max(2, (s.n / top) * 100)}%` }} />
+                  <span className="font-bold">{s.n}</span>
+                </div>
+              );
+            })}
+            <div className="mt-2 text-sm text-slate-600">
+              5 मिनट डेमो लॉगिन: <b>{funnel.demos}</b>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-amber-700">Journey का database update अभी नहीं चला।</p>
+        )}
+      </section>
+
+      <section className="card mb-6" data-testid="owner-leads">
+        <h2 className="mb-1 text-xl font-bold">💬 Doctor को अगला मैसेज (Auto-DM पैक)</h2>
+        <p className="mb-3 text-sm text-slate-500">
+          Stage चुनें, नाम और नंबर डालें। मैसेज तैयार, एक टैप में WhatsApp खुलेगा। भेजना आपके Send दबाने पर ही होगा।
+        </p>
+        <LeadComposer appUrl={serverEnv.appUrl()} />
+      </section>
 
       <section className="card mb-6">
         <h1 className="mb-1 text-2xl font-bold">+ नई clinic जोड़ें</h1>

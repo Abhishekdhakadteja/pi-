@@ -1,6 +1,7 @@
 "use client";
 import { useActionState } from "react";
 import { startDemo, type DemoState } from "./actions";
+import { track } from "@/lib/journey-client";
 
 const W = {
   hi: {
@@ -30,7 +31,7 @@ export function DemoStart({ lang, refTag }: { lang: "hi" | "en"; refTag: string 
   const [state, action, pending] = useActionState<DemoState, FormData>(startDemo, {});
   const btn = "flex w-full flex-col items-start rounded-2xl border p-4 text-left transition disabled:opacity-60";
   return (
-    <form action={action} className="flex w-full flex-col gap-3">
+    <form action={action} onSubmit={() => track("demo", refTag)} className="flex w-full flex-col gap-3">
       {refTag && <input type="hidden" name="ref" value={refTag} />}
       <button
         name="role"

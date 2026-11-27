@@ -94,6 +94,19 @@ export default async function Home() {
               {c.ctaDay}
             </a>
           </div>
+          <Link
+            href="/start?ref=home"
+            className="mt-3 flex w-full max-w-md items-center justify-between gap-3 rounded-2xl border border-amber-300/50 bg-gradient-to-r from-amber-300/15 via-pink-400/10 to-violet-500/15 p-4 text-left text-white hover:brightness-125 sm:max-w-lg"
+            data-testid="landing-checkup"
+          >
+            <span>
+              <span className="block text-lg font-bold">{lang === "hi" ? "🩺 60 सेकंड क्लिनिक चेकअप" : "🩺 60-second clinic check-up"}</span>
+              <span className="block text-sm text-slate-300">
+                {lang === "hi" ? "देखिए हर महीने कितने मरीज़ और कितना ₹ छूट रहा है" : "See how many patients and ₹ slip away each month"}
+              </span>
+            </span>
+            <span className="text-2xl">→</span>
+          </Link>
           <div className="mt-3 grid w-full max-w-md grid-cols-2 gap-3 sm:max-w-lg">
             <Link href="/demo?ref=home" className="btn border border-amber-300/50 bg-amber-300/10 text-amber-50 hover:bg-amber-300/20" data-testid="landing-demo">
               {lang === "hi" ? "▶ 5 मिनट LIVE डेमो" : "▶ 5-min LIVE demo"}

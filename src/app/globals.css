@@ -362,3 +362,5 @@ body {
   .health .print-area * { color: #000 !important; border-color: #999 !important; background: transparent !important; }
   .health .pointer-events-none { display: none !important; }
 }
+
+@keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
