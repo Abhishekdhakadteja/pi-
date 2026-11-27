@@ -4,8 +4,13 @@
 # so that if Netlify ever stops the site (free credits used up), we can switch in minutes.
 # See docs/CLOUDFLARE.md.
 #
-# It does nothing until CLOUDFLARE_API_TOKEN is added in
-# Settings -> Secrets and variables -> Actions. Then it deploys on every push to main.
+# It runs only when started by hand (Actions -> Cloudflare standby -> Run workflow).
+# Until 2026-11-27 it also ran on every push to main, but GitHub held every one of those
+# runs at "action_required" without starting a job, which put a red X on each merge
+# commit although nothing had failed. Add CLOUDFLARE_API_TOKEN in
+# Settings -> Secrets and variables -> Actions first; to make it automatic again, add
+#   push: { branches: [main] }
+# under "on:" once the token is set.
 #
 # Repository secrets used (the same values as on Netlify; missing ones are skipped):
 #   CLOUDFLARE_API_TOKEN      required. Token from the "Edit Cloudflare Workers" template.
@@ -15,8 +20,6 @@
 name: Cloudflare standby
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -83,14 +86,34 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          ALL_SECRETS: ${{ toJSON(secrets) }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          PATIENT_SESSION_SECRET: ${{ secrets.PATIENT_SESSION_SECRET }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          OWNER_EMAILS: ${{ secrets.OWNER_EMAILS }}
+          APP_URL: ${{ secrets.APP_URL }}
+          MESSAGING_PROVIDER: ${{ secrets.MESSAGING_PROVIDER }}
+          MSG91_AUTH_KEY: ${{ secrets.MSG91_AUTH_KEY }}
+          MSG91_TEMPLATE_ID: ${{ secrets.MSG91_TEMPLATE_ID }}
+          WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
+          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+          WHATSAPP_TEMPLATE: ${{ secrets.WHATSAPP_TEMPLATE }}
+          WHATSAPP_TEMPLATE_LANG: ${{ secrets.WHATSAPP_TEMPLATE_LANG }}
+          INBOUND_WEBHOOK_SECRET: ${{ secrets.INBOUND_WEBHOOK_SECRET }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
+          RAZORPAY_KEY_SECRET: ${{ secrets.RAZORPAY_KEY_SECRET }}
+          RAZORPAY_WEBHOOK_SECRET: ${{ secrets.RAZORPAY_WEBHOOK_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          SIGNUP_EMAIL_FROM: ${{ secrets.SIGNUP_EMAIL_FROM }}
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+          TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
         run: |
           set -euo pipefail
           # Build a JSON of only the listed names that are set. Values never reach the log.
           node -e '
-            const all = JSON.parse(process.env.ALL_SECRETS);
             const out = {};
-            for (const n of process.env.SECRET_NAMES.split(/\s+/).filter(Boolean)) if (all[n]) out[n] = all[n];
+            for (const n of process.env.SECRET_NAMES.split(/\s+/).filter(Boolean)) if (process.env[n]) out[n] = process.env[n];
             require("fs").writeFileSync("cf-secrets.json", JSON.stringify(out));
             console.log("Keys to copy:", Object.keys(out).join(", ") || "(none)");
           '
