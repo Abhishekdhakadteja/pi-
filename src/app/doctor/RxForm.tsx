@@ -1,9 +1,11 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useT } from "@/components/LangProvider";
 import { saveRx } from "./actions";
 import { formatDate } from "@/lib/dates";
 import type { ErrorCode } from "@/lib/i18n";
+import { getScribeWords, SCRIBE_EVENT } from "@/lib/scribe-words";
+import type { ScribeLine } from "@/lib/scribe-parse";
 
 type Line = { medicine: string; dose: string; timing: string; days: string; note: string };
 const EMPTY: Line = { medicine: "", dose: "", timing: "after_food", days: "", note: "" };
@@ -25,13 +27,29 @@ export function RxForm({
   const [pending, start] = useTransition();
   const [error, setError] = useState<ErrorCode | null>(null);
   const [done, setDone] = useState<{ end: string; next: string; wa: string } | null>(null);
+  const [aiFilled, setAiFilled] = useState(false);
   const set = (i: number, k: keyof Line, v: string) => setLines((ls) => ls.map((l, j) => (j === i ? { ...l, [k]: v } : l)));
 
+  // AI Scribe hands its draft over here; the doctor still checks and presses Save.
+  useEffect(() => {
+    const onDraft = (e: Event) => {
+      const draft = (e as CustomEvent<ScribeLine[]>).detail;
+      if (!Array.isArray(draft) || !draft.length) return;
+      setLines(draft.map((l) => ({ medicine: l.medicine, dose: l.dose, timing: l.timing, days: l.days, note: l.note })));
+      setAiFilled(true);
+      setDone(null);
+      document.getElementById(`rx-form-${appointmentId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    window.addEventListener(SCRIBE_EVENT, onDraft);
+    return () => window.removeEventListener(SCRIBE_EVENT, onDraft);
+  }, [appointmentId]);
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3" id={`rx-form-${appointmentId}`}>
       <p className="text-sm text-slate-500">{t("rxHelp")}</p>
+      {aiFilled && <p className="rounded-xl bg-amber-50 p-2 text-sm font-semibold text-amber-900 ring-1 ring-amber-300" data-testid="rx-ai-banner">{getScribeWords(lang).rxBanner}</p>}
       {lines.map((l, i) => (
-        <div key={i} className="flex flex-col gap-2 rounded-xl bg-slate-50 p-3" data-testid={`rx-line-${i}`}>
+        <div key={i} className={`flex flex-col gap-2 rounded-xl bg-slate-50 p-3 ${aiFilled ? "ring-2 ring-amber-400" : ""}`} data-testid={`rx-line-${i}`}>
           <div className="flex gap-2">
             <span className="pt-3 font-bold text-teal-700">{i + 1}.</span>
             <input className="input flex-1" placeholder={t("medicine")} value={l.medicine} onChange={(e) => set(i, "medicine", e.target.value)} maxLength={120} />
@@ -90,6 +108,7 @@ export function RxForm({
             const r = await saveRx(appointmentId, lines);
             if (r.ok) {
               setError(null);
+              setAiFilled(false);
               setDone({ end: r.end_date, next: r.next_visit_date, wa: r.wa });
             } else setError(r.error);
           })

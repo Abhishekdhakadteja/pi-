@@ -40,9 +40,9 @@ describe("AI is Pro-only (Basic costs ₹0 in AI)", () => {
 
   it("every server file that calls Claude goes through requireProAI first", () => {
     const callers = filesUnder("src").filter((f) => {
-      if (/src\/lib\/(ai\.ts|ai-guard\.ts|ai-manager\/)/.test(f)) return false;
+      if (/src\/lib\/(ai\.ts|ai-guard\.ts|scribe\.ts|ai-manager\/)/.test(f)) return false;
       const s = readFileSync(f, "utf8");
-      return /\b(summarizePatient|askManager)\s*\(/.test(s);
+      return /\b(summarizePatient|askManager|draftPrescription)\s*\(/.test(s);
     });
     expect(callers.length).toBeGreaterThanOrEqual(2);
     for (const f of callers) {

@@ -16,7 +16,7 @@ export function classifyAiError(e: unknown): AiFailKind {
 }
 
 /** Writes one line to the owner's error log (no patient data, only the feature and the kind). */
-export async function reportAiFailure(feature: "summary" | "manager", kind: AiFailKind, path: string) {
+export async function reportAiFailure(feature: "summary" | "manager" | "scribe", kind: AiFailKind, path: string) {
   try {
     const { logError } = await import("@/lib/error-log");
     const hint =
